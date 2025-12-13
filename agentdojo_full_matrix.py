@@ -9,7 +9,7 @@ from datetime import datetime
 MODELS = [
     "GPT_3_5_TURBO_0125",
     "GPT_4O_2024_05_13",
-    "GPT_4O_MINI_2024_07_18",   # 不用就删
+    "QWEN3_MAX_2025_09_23",
 ]
 
 ATTACKS = [
@@ -28,14 +28,14 @@ SUITES = [
 # defense=None 表示 baseline（不加 --defense）
 DEFENSES = [
     None,  # baseline: no defense
-    "tool_filter",
     "spotlighting_with_delimiting",
     "repeat_user_prompt",
+    "tool_filter",
     "transformers_pi_detector",
     "melon",
     "melon_aug",
-    "tcdt",
     "task_shield",
+    "tcdt",
 ]
 
 PYTHON_BIN = sys.executable   # 保证使用当前 python 环境
@@ -117,3 +117,4 @@ def main():
 
 if __name__ == "__main__":
     main()
+
