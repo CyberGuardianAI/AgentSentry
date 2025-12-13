@@ -42,7 +42,7 @@ PYTHON_BIN = sys.executable   # 保证使用当前 python 环境
 
 
 # =========================
-# 执行逻辑（保持和你示例一致）
+# 执行逻辑
 # =========================
 
 def run_command(model: str, attack: str, suite: str, defense) -> bool:
@@ -117,4 +117,5 @@ def main():
 
 if __name__ == "__main__":
     main()
+
 
