@@ -9,5 +9,8 @@ Qwen-3-max没有Embeddings,这时候需要切换到pumpkin（或 OpenAI 官方�
 
 <img width="2454" height="1260" alt="image" src="https://github.com/user-attachments/assets/0c483836-9b77-4e0f-891b-e53d36ef81bd" />
 
+<img width="1974" height="936" alt="d8d74b838a954b4bd1bfaf61b6e872e1" src="https://github.com/user-attachments/assets/7b07011a-f292-452b-a473-074a3c2bbc1a" />
+
+
 因此需要改一下llm的接口，让他不崩溃
 
