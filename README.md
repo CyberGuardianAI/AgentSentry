@@ -18,3 +18,9 @@ Qwen-3-max没有Embeddings,这时候需要切换到pumpkin（或 OpenAI 官方�
 
 <img width="1728" height="710" alt="image" src="https://github.com/user-attachments/assets/850bd5b9-ff30-45d7-a887-4fc7e41479bc" />
 
+
+执行过程中结果
+
+<img width="1988" height="1311" alt="8d4dda38f6dbaa83bd63f85fef403079" src="https://github.com/user-attachments/assets/0cf7090c-bd6a-45d8-86e1-675956c48d27" />
+
+
