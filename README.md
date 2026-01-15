@@ -6,10 +6,6 @@
   <img src="assets/logo.png" alt="AgentSentry logo" width="300">
 </p>
 
-
-
-<h1 align="center">AgentSentry</h1>
-
 <p align="center">
   <b>Mitigating Indirect Prompt Injection in LLM Agents via Temporal Causal Diagnostics and Context Purification</b>
 </p>
