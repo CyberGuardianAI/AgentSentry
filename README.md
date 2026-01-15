@@ -149,13 +149,9 @@ Here is an example command to run the experiments:
 python -m agentdojo.scripts.benchmark --model QWEN3_MAX_2025_09_23 --defense Agentsentry --attack important_instructions -ut user_task_20 -s workspace
 ```
 
-## agentsentry Implementation in Other Repositories
+## Agentsentry Implementation in Other Repositories
 
 In `pi_detector.py`, we provide the implementation of agentsentry. You can use it in your own projects.
-
-## Contact
-
-If you have any questions, please contact ...
 
 ## Acknowledgments
 
