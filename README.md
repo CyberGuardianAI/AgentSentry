@@ -36,7 +36,7 @@
 - **Problem:** Tool-augmented LLM agents are vulnerable to **indirect prompt injection (IPI)**, where attacker-controlled context embedded in tool outputs/retrieval silently steers actions away from user intent.
 - **Key insight:** Multi-turn IPI can be modeled as a **temporal causal takeover**.
 - **Method:** **AgentSentry** performs **boundary-anchored counterfactual shadow runs** at **tool-return boundaries** to localize takeover points, then applies **causally gated context purification** to suppress instruction-carrying influence while preserving task evidence.
-- **Outcome:** Enables **safe continuation** (policy-compliant) instead of terminating workflows or globally disabling tool use.
+- **Outcome:** Enables **safe continuation** instead of terminating workflows or globally disabling tool use.
 - **Results (AgentDojo):** **ASR = 0%**, **UA = 74.55%** on average, improving UA by **+20.8 to +33.6** points over the strongest baselines without degrading benign performance.
 
 ---
