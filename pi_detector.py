@@ -224,14 +224,14 @@ class TransformersBasedPIDetector(PromptInjectionDetector):
         tool_output 可能�?
           - 纯字符串（老版本）
           - content-block 列表: [{"type":"text","content": "..."}]
-          - 其它对象（比如整�?message / dict�?
-        这里统一抽成字符�?+ 手动裁剪，再送进 HF pipeline，避�?OOM�?
+          - 其它对象
+        这里统一抽成字符�?+ 手动裁剪，再送进 HF pipeline
         """
         # 1) 抽成纯文�?
         text = self._extract_text(tool_output)
 
-        # 2) 再做一层字符级裁剪，防止超大文�?/ 超长日志
-        #    这里取最�?4000 个字符，一般注入提示都在靠后位�?
+        # 2) 再做一层字符级裁剪，防止超大文/ 超长日志
+
         max_chars = 4000
         if len(text) > max_chars:
             text = text[-max_chars:]
@@ -4687,4 +4687,5 @@ class TCDT:
 #         oea["Agentsentry_state"] = state
 #         llm_results = (oq, ort, oenv, omsg, oea)
 #         return llm_results, (is_injection, float(risk_score))
+
 
