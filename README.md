@@ -7,7 +7,7 @@
 </p>
 
 <p align="center">
-  <b>Mitigating Indirect Prompt Injection in LLM Agents via Temporal Causal Diagnostics and Context Purification</b>
+  <b>Agentsentry:Mitigating Indirect Prompt Injection in LLM Agents via Temporal Causal Diagnostics and Context Purification</b>
 </p>
 
 <p align="center">
