@@ -64,7 +64,7 @@ A recommended structure (adapt as needed):
 └── README.md                       # Project overview, reproduction instructions, and artifact pointers
 
 ---
-## Installation
+##⚙️ Installation
 First, clone the [agentdojo](https://github.com/ethz-spylab/agentdojo) repository.
 ```bash
 git clone https://github.com/ethz-spylab/agentdojo
