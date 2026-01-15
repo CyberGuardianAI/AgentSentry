@@ -3,7 +3,7 @@
 ======================== -->
 
 <p align="center">
-  <img src="assets/logo (2).png" alt="AgentSentry logo" width="520">
+  <img src="assets/logo.png" alt="AgentSentry logo" width="520">
 </p>
 
 
