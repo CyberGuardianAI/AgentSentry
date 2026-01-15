@@ -1,7 +1,6 @@
 import json
 from pathlib import Path
 
-# ä½ çš„ workspace è·¯å¾„
 BASE_DIR = Path(r"/\runs\qwen3-max-2025-09-23-agentsentry\banking")
 
 total_cases = 0
@@ -49,4 +48,5 @@ else:
     print(f"æ€»æ ·æœ¬æ•°ï¼ˆinjecagentï¼‰ï¼š{total_cases}")
     print(f"å¹³å‡å¯ç”¨æ€?UA: {avg_ua:.4f} ({avg_ua * 100:.2f}%)")
     print(f"å¹³å‡æ”»å‡»æˆåŠŸçŽ?ASR: {avg_asr:.4f} ({avg_asr * 100:.2f}%)")
+
 
