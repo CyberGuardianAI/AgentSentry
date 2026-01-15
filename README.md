@@ -67,7 +67,7 @@ We evaluate AgentSentry on the **AgentDojo** benchmark across four task suites, 
 
 ---
 
-## 🧠 Threat Model (in one view)
+## 🧠 Threat Model
 
 **Untrusted content** (emails, documents, webpages) enters the agent via **tools/retrieval/memory**.  
 Injected instructions can survive processing and become **action-dominant**, causing **unauthorized tool invocations** and **data exfiltration** through legitimate APIs.
