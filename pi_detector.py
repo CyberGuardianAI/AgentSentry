@@ -193,16 +193,15 @@ class TransformersBasedPIDetector(PromptInjectionDetector):
 
         device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
-        # �?这里直接�?HF pipeline 自己�?token �?truncation，避免长输入炸内�?
         self.pipeline = pipeline(
             "text-classification",
             model=self.model_name,
             device=device,
-            truncation=True,   # �?tokenizer 截断
-            max_length=512,    # 512 token 足够�?PI 检�?
+            truncation=True,   
+            max_length=512,    
         )
 
-    # �?把各�?content 统一抽成纯文�?
+
     def _extract_text(self, content: Any) -> str:
         if content is None:
             return ""
@@ -253,7 +252,9 @@ class TransformersBasedPIDetector(PromptInjectionDetector):
 """
 AgentSentry/TCDT 
 ======================================================
-Note: This codebase was initially developed under our earlier name TCDT (Temporal Causal Degradation Tests) and was later rebranded to the more paper-facing name AgentSentry during manuscript preparation; therefore, a few identifiers and comments may still reference TCDT, but this does not affect the correctness or executability of the core AgentSentry implementation.
+Note: This codebase was initially developed under our earlier name TCDT (Temporal Causal Degradation Tests) and was later rebranded to the more paper-facing name 
+AgentSentry during manuscript preparation; therefore, a few identifiers and comments may still reference TCDT, but this does not affect the correctness or executability 
+of the core AgentSentry implementation.
 
 
 (1) Task-neutral diagnostic probe x^mask:
@@ -4686,3 +4687,4 @@ class TCDT:
 #         oea["Agentsentry_state"] = state
 #         llm_results = (oq, ort, oenv, omsg, oea)
 #         return llm_results, (is_injection, float(risk_score))
+
