@@ -9,7 +9,7 @@ from datetime import datetime
 MODELS = [
     "GPT_3_5_TURBO_0125",
     "GPT_4O_2024_05_13",
-    "GPT_4O_MINI_2024_07_18",   # 不用就删
+    "GPT_4O_MINI_2024_07_18",  
 ]
 
 ATTACKS = [
@@ -40,10 +40,6 @@ DEFENSES = [
 
 PYTHON_BIN = sys.executable   # 保证使用当前 python 环境
 
-
-# =========================
-# 执行逻辑（保持和你示例一致）
-# =========================
 
 def run_command(model: str, attack: str, suite: str, defense) -> bool:
     cmd = [
@@ -117,3 +113,4 @@ def main():
 
 if __name__ == "__main__":
     main()
+
