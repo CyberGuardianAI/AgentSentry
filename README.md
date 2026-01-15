@@ -3,8 +3,12 @@
 ======================== -->
 
 <p align="center">
-  <img src="assets/logo.png" alt="AgentSentry logo" width="120"/>
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="assets/logo-dark.png">
+    <img alt="AgentSentry logo" src="assets/logo-light.png" width="520">
+  </picture>
 </p>
+
 
 <h1 align="center">AgentSentry</h1>
 
