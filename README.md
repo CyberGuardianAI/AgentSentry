@@ -33,23 +33,23 @@ Large language model (LLM) agents increasingly rely on external tools and retrie
 
 ---
 
-## 🖼 Figures
+## 🖼 Figure
 
-> Put your two paper figures into `assets/` as `1.png` and `2.png`.
-
-### (1) Representative attack chain of tool-mediated IPI
+> Put the architecture figure into `assets/` as `pipeline.png`.
 
 <p align="center">
-  <img src="assets/1.png" alt="Representative attack chain of tool-mediated IPI" width="720"/>
+  <img src="assets/pipeline.png" alt="AgentSentry pipeline for defending against multi-turn IPI" width="980"/>
 </p>
 
-### (2) AgentSentry pipeline for defending against multi-turn IPI
-
 <p align="center">
-  <img src="assets/2.png" alt="AgentSentry pipeline" width="920"/>
+  <em><b>AgentSentry pipeline for defending against multi-turn IPI.</b>
+  Untrusted content enters the agent via tool invocations, retrieval, and memory access and is incorporated into the evolving context as mediator-bearing evidence.
+  At each <b>tool-return boundary</b> (after a tool response is written into the context and before the next action is finalized), AgentSentry performs counterfactual <b>shadow runs</b> by replaying cached mediators under controlled substitutions to estimate boundary-level causal influence.
+  When mediator-driven takeover is detected, AgentSentry localizes the earliest compromised boundary, applies <b>context purification</b> to suppress instruction-carrying influence while preserving task-relevant evidence, and enables <b>safe continuation</b> via policy-compliant execution under the purified boundary state.</em>
 </p>
 
 ---
+
 
 ## 🧠 Threat Model
 
