@@ -1,38 +1,48 @@
-# AgentSentry: Mitigating Indirect Prompt Injection in LLM Agents via Temporal Causal Diagnostics and Context Purification
+<!-- =======================
+ AgentSentry README (pretty)
+======================== -->
 
-Official implementation of **AgentSentry**, an inference-time defense framework for tool-augmented LLM agents against **multi-turn indirect prompt injection (IPI)**.
+<p align="center">
+  <img src="assets/logo.png" alt="AgentSentry logo" width="120"/>
+</p>
 
----
+<h1 align="center">AgentSentry</h1>
 
-## Overview
+<p align="center">
+  <b>Mitigating Indirect Prompt Injection in LLM Agents via Temporal Causal Diagnostics and Context Purification</b>
+</p>
 
-Tool-augmented LLM agents increasingly rely on external tools and retrieval systems (e.g., search, email, calendar, enterprise APIs) to autonomously complete complex tasks. However, this design exposes agents to **indirect prompt injection (IPI)**, where attacker-controlled content embedded in tool outputs or retrieved artifacts silently steers agent actions away from user intent. Unlike direct prompt attacks, IPI often unfolds over **multi-turn trajectories**, making malicious control difficult to disentangle from legitimate task execution.
+<p align="center">
+  <a href="https://anonymous.4open.science/r/AgentSentry"><img alt="Code" src="https://img.shields.io/badge/Code-anonymous.4open.science-4c1?style=flat-square"></a>
+  <img alt="Status" src="https://img.shields.io/badge/Status-Research%20Artifact-blue?style=flat-square">
+  <img alt="Defense" src="https://img.shields.io/badge/Topic-Indirect%20Prompt%20Injection-orange?style=flat-square">
+  <img alt="Agent" src="https://img.shields.io/badge/Setting-Tool--Augmented%20LLM%20Agents-7b2cbf?style=flat-square">
+  <img alt="Benchmark" src="https://img.shields.io/badge/Benchmark-AgentDojo-black?style=flat-square">
+</p>
 
-Existing inference-time defenses primarily rely on heuristic detection and conservative blocking of high-risk actions, which can prematurely terminate workflows or broadly suppress tool usage under ambiguous multi-turn scenarios.
-
-**AgentSentry** models multi-turn IPI as a **temporal causal takeover**. It:
-1. **Localizes takeover points** via controlled **counterfactual re-executions** at **tool-return boundaries**; and  
-2. Enables **safe continuation** via **causally guided context purification** that suppresses instruction-carrying influence while preserving task-relevant evidence.
-
----
-
-## Figures
-
-### Representative attack chain (tool-mediated IPI)
-
-Place this image at `assets/1.png`.
-
-![A representative attack chain of tool-mediated IPI.](assets/1.png)
-
-### AgentSentry pipeline (temporal causal diagnostics + purification + safe continuation)
-
-Place this image at `assets/2.png`.
-
-![AgentSentry pipeline for defending against multi-turn IPI.](assets/2.png)
+<p align="center">
+  <a href="#-highlights">Highlights</a> ·
+  <a href="#-figures">Figures</a> ·
+  <a href="#-quickstart">Quickstart</a> ·
+  <a href="#-reproducing-results-agentdojo">Reproducing Results</a> ·
+  <a href="#-citation">Citation</a>
+</p>
 
 ---
 
-## Abstract
+## ✦ Highlights
+
+- **Problem:** Tool-augmented LLM agents are vulnerable to **indirect prompt injection (IPI)**, where attacker-controlled context embedded in tool outputs/retrieval silently steers actions away from user intent.
+- **Key insight:** Multi-turn IPI can be modeled as a **temporal causal takeover**.
+- **Method:** **AgentSentry** performs **boundary-anchored counterfactual shadow runs** at **tool-return boundaries** to localize takeover points, then applies **causally gated context purification** to suppress instruction-carrying influence while preserving task evidence.
+- **Outcome:** Enables **safe continuation** (policy-compliant) instead of terminating workflows or globally disabling tool use.
+- **Results (AgentDojo):** **ASR = 0%**, **UA = 74.55%** on average, improving UA by **+20.8 to +33.6** points over the strongest baselines without degrading benign performance.
+
+> Anonymous code release: **https://anonymous.4open.science/r/AgentSentry**
+
+---
+
+## 🧾 Abstract
 
 Large language model (LLM) agents increasingly rely on external tools and retrieval systems to autonomously complete complex tasks. However, this design exposes agents to *indirect prompt injection* (IPI), where attacker-controlled context embedded in tool outputs or retrieved content silently steers agent actions away from user intent. Unlike prompt-based attacks, IPI unfolds over multi-turn trajectories, making malicious control difficult to disentangle from legitimate task execution.
 
@@ -42,60 +52,48 @@ We evaluate AgentSentry on the **AgentDojo** benchmark across four task suites, 
 
 ---
 
-## Key Idea
+## 🖼 Figures
 
-AgentSentry instruments the agent loop at **tool-return boundaries** (immediately after a tool response is incorporated into the evolving context, but before the next action is finalized). At each boundary, AgentSentry runs a small family of **counterfactual shadow executions** by replaying cached mediator content under controlled substitutions to estimate **boundary-local causal influence**. When causal evidence indicates a mediator-driven takeover, AgentSentry **purifies only the newly introduced mediator-bearing content** into an evidence-only form and **minimally revises** the next action to remain policy-compliant, enabling **safe continuation** rather than terminating the workflow.
+> Put your two paper figures into `assets/` as `1.png` and `2.png`.
+
+### (1) Representative attack chain of tool-mediated IPI
+
+<p align="center">
+  <img src="assets/1.png" alt="Representative attack chain of tool-mediated IPI" width="720"/>
+</p>
+
+### (2) AgentSentry pipeline for defending against multi-turn IPI
+
+<p align="center">
+  <img src="assets/2.png" alt="AgentSentry pipeline" width="920"/>
+</p>
 
 ---
 
-## Results (AgentDojo)
+## 🧠 Threat Model (in one view)
 
-**Headline:** AgentSentry eliminates successful attacks while preserving utility.
+**Untrusted content** (emails, documents, webpages) enters the agent via **tools/retrieval/memory**.  
+Injected instructions can survive processing and become **action-dominant**, causing **unauthorized tool invocations** and **data exfiltration** through legitimate APIs.
 
-- **Attack Success Rate (ASR):** 0% (across evaluated attacks/models in our setting)
-- **Utility Under Attack (UA):** 74.55% on average  
-- **UA improvement over strongest baselines:** +20.8 to +33.6 points  
-- **Benign performance:** no degradation (in our setting)
-
-> For exact numbers, breakdowns by suite/attack/model, and ablations, please refer to the paper and the released logs/configs.
+AgentSentry mitigates this by:
+1. diagnosing **boundary-local causal influence** (counterfactual shadow runs), then  
+2. applying **causally gated purification** + **minimal action revision** for safe continuation.
 
 ---
 
-## Repository Structure
+## 📦 Repository Layout
 
-A typical layout is as follows (adjust to your actual repo):
+A recommended structure (adapt as needed):
 
 ```text
 .
-├── assets/                      # figures for README (1.png, 2.png)
+├── assets/                      # README figures (1.png, 2.png), optional logo.png
 ├── agentsentry/                 # core library (diagnostics, purification, enforcement)
-├── configs/                     # experiment configs (models, suites, attacks, defenses)
+│   ├── diagnostics/             # temporal causal diagnostics (ACE/DE/IE, TCDT)
+│   ├── purification/            # evidence-form rewriting, mediator suppression
+│   ├── policy/                  # action impact categorization, gating rules
+│   └── runtime/                 # boundary hooks, caching, shadow-run runner
+├── configs/                     # experiment configs (suite/model/attack/defense)
 ├── scripts/                     # run scripts and helpers
-├── evaluation/                  # metrics, aggregation, plotting
+├── evaluation/                  # metrics aggregation (ASR/UA/CU/FPR), plotting
 └── README.md
-
-
-
-Qwen-3-max没有Embeddings,这时候需要切换到pumpkin（或 OpenAI 官方）
-<img width="1432" height="974" alt="image" src="https://github.com/user-attachments/assets/42591d7d-52df-4815-972a-608a175aac15" />
-
-
-然后我们的TCDT方法跑的时候，有时候还会遇到并发key的问题，就是导致流程结束。因为重执行了多次，如下：
-
-<img width="2454" height="1260" alt="image" src="https://github.com/user-attachments/assets/0c483836-9b77-4e0f-891b-e53d36ef81bd" />
-
-<img width="1974" height="936" alt="d8d74b838a954b4bd1bfaf61b6e872e1" src="https://github.com/user-attachments/assets/7b07011a-f292-452b-a473-074a3c2bbc1a" />
-
-
-因此需要改一下llm的接口，让他不崩溃
-
-
-
-<img width="1728" height="710" alt="image" src="https://github.com/user-attachments/assets/850bd5b9-ff30-45d7-a887-4fc7e41479bc" />
-
-
-执行过程中结果
-
-<img width="1988" height="1311" alt="8d4dda38f6dbaa83bd63f85fef403079" src="https://github.com/user-attachments/assets/0cf7090c-bd6a-45d8-86e1-675956c48d27" />
-
-
