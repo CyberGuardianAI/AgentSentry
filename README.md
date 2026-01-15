@@ -35,8 +35,6 @@ Large language model (LLM) agents increasingly rely on external tools and retrie
 
 ## 🖼 Figure
 
-> Put the architecture figure into `assets/` as `pipeline.png`.
-
 <p align="center">
   <img src="assets/pipeline.png" alt="AgentSentry pipeline for defending against multi-turn IPI" width="980"/>
 </p>
