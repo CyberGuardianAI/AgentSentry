@@ -52,13 +52,13 @@ A recommended structure (adapt as needed):
 
 ```text
 .
-├── assets/                      # README figures (1.png, 2.png), optional logo.png
-├── agentsentry/                 # core library (diagnostics, purification, enforcement)
-│   ├── diagnostics/             # temporal causal diagnostics (ACE/DE/IE, TCDT)
-│   ├── purification/            # evidence-form rewriting, mediator suppression
-│   ├── policy/                  # action impact categorization, gating rules
-│   └── runtime/                 # boundary hooks, caching, shadow-run runner
-├── configs/                     # experiment configs (suite/model/attack/defense)
-├── scripts/                     # run scripts and helpers
-├── evaluation/                  # metrics aggregation (ASR/UA/CU/FPR), plotting
-└── README.md
+├── assets/                         # Figures and visual assets used in the README (e.g., pipeline.png)
+├── configs/                        # Experiment configuration files (suite/model/attack/defense settings)
+├── evaluation/                     # Evaluation utilities: metric aggregation and reporting (e.g., ASR/UA/CU/FPR)
+├── results/
+│   └── agentdojo/                  # Final benchmark outputs organized for paper tables/figures (AgentDojo results)
+├── runs/                           # Intermediate run artifacts (per-run logs, cached traces, debugging dumps)
+├── scripts/                        # Entry points and helpers to run benchmarks and reproduce analyses
+├── visualization/                  # Plotting and figure-generation scripts/notebooks for paper-ready visuals
+├── pi_detector.py                  # Main detection module (AgentSentry inference-time diagnostics + gating)
+└── README.md                       # Project overview, reproduction instructions, and artifact pointers
