@@ -56,9 +56,20 @@ A recommended structure (adapt as needed):
 ├── configs/                        # Experiment configuration files (suite/model/attack/defense settings)
 ├── evaluation/                     # Evaluation utilities: metric aggregation and reporting (e.g., ASR/UA/CU/FPR)
 ├── results/
-│   └── agentdojo/                  # Final benchmark outputs organized for paper tables/figures (AgentDojo results)
+│   └── agentdojo/                  # Final benchmark outputs organized for paper tables (AgentDojo results)
 ├── runs/                           # Intermediate run artifacts (per-run logs, cached traces, debugging dumps)
 ├── scripts/                        # Entry points and helpers to run benchmarks and reproduce analyses
 ├── visualization/                  # Plotting and figure-generation scripts/notebooks for paper-ready visuals
 ├── pi_detector.py                  # Main detection module (AgentSentry inference-time diagnostics + gating)
 └── README.md                       # Project overview, reproduction instructions, and artifact pointers
+
+
+## ⚙️ Installation
+
+AgentSentry is evaluated on **AgentDojo**. Please first install the AgentDojo benchmark environment.
+
+**1) Clone AgentDojo**
+```bash
+git clone https://github.com/ethz-spylab/agentdojo
+cd agentdojo
+
