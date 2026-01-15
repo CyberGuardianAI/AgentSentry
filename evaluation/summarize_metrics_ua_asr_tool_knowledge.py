@@ -7,8 +7,8 @@ from typing import Dict, List, Tuple
 # =========================
 
 SUITES = [
-    Path(r"/\runs\gpt-4o-2024-05-13-melon\travel"),
-      # Path(r"C:\Users\TianZhang\PycharmProjects\agentsentry\runs\gpt-3.5-turbo-repeat_user_prompt\workspace"),
+
+      Path(r"C:\Users\TianZhang\PycharmProjects\agentsentry\runs\gpt-3.5-turbo-repeat_user_prompt\workspace"),
     # 需要更多 suite 就继续加
 ]
 
