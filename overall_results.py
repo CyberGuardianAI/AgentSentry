@@ -7,8 +7,7 @@ def mean2(xs):
 def is_num(x):
     return isinstance(x, (int, float))
 
-# 数据结构：每行 = 一个 defense，包含 CU/FPR 与三种攻击的 UA/ASR
-# 注意：这里完全按你表里的数抄录；Avg 不手写，脚本自动算。
+
 DATA = OrderedDict({
     "GPT-4o": OrderedDict({
         "No Defense": dict(
@@ -245,7 +244,6 @@ def latex_rows(model_name, model_rows, model_tag="BaselineGray"):
         name_cell = f"\\textbf{{{model_name}}}" if first else ""
         first = False
 
-        # 是否加粗：命中 best 即加粗（允许并列）
         def b(col):
             return (v[col] == best[col])
 
@@ -263,7 +261,7 @@ def latex_rows(model_name, model_rows, model_tag="BaselineGray"):
 
     return "\n\n".join(out)
 
-# 示例：打印三个模型块的 LaTeX 行
 for model in DATA:
     print("="*20, model, "="*20)
     print(latex_rows(model, DATA[model], model_tag="BaselineGray"))
+
