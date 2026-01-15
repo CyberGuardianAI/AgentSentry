@@ -135,6 +135,14 @@ In `def from_config` function, add the agentsentry detector (similar to `tool_fi
 ## Step 2: Add the agentsentry detector
 
 Please copy the entire `pi_detector.py` to `agentdojo/src/agentdojo/agent_pipeline/pi_detector.py`. Rememeber to fill in the api key for the OpenAI model.
+Configure the OpenAI API credentials (PowerShell):
+
+# required
+$env:OPENAI_API_KEY="sk-xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+
+# optional: if you use a proxy / compatible endpoint
+# for official OpenAI, you can omit this line
+$env:OPENAI_BASE_URL="https:"
 
 Modifications:
 
