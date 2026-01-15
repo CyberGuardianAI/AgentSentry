@@ -146,7 +146,7 @@ The instructions are the same as in [agentdojo](https://github.com/ethz-spylab/a
 
 Here is an example command to run the experiments:
 ```bash
-python -m agentdojo.scripts.benchmark --model QWEN3_MAX_2025_09_23 --defense Agentsentry --attack important_instructions -ut user_task_20 -s workspace
+python -m agentdojo.scripts.benchmark --model QWEN3_MAX_2025_09_23 --defense Agentsentry --attack important_instructions -s workspace
 ```
 
 ## Agentsentry Implementation in Other Repositories
