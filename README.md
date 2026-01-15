@@ -43,9 +43,6 @@ Large language model (LLM) agents increasingly rely on external tools and retrie
 
 <p align="center">
   <em><b>AgentSentry pipeline for defending against multi-turn IPI.</b>
-  Untrusted content enters the agent via tool invocations, retrieval, and memory access and is incorporated into the evolving context as mediator-bearing evidence.
-  At each <b>tool-return boundary</b> (after a tool response is written into the context and before the next action is finalized), AgentSentry performs counterfactual <b>shadow runs</b> by replaying cached mediators under controlled substitutions to estimate boundary-level causal influence.
-  When mediator-driven takeover is detected, AgentSentry localizes the earliest compromised boundary, applies <b>context purification</b> to suppress instruction-carrying influence while preserving task-relevant evidence, and enables <b>safe continuation</b> via policy-compliant execution under the purified boundary state.</em>
 </p>
 
 ---
