@@ -17,14 +17,6 @@
   <img alt="Benchmark" src="https://img.shields.io/badge/Benchmark-AgentDojo-black?style=flat-square">
 </p>
 
-<p align="center">
-  <a href="#-highlights">Highlights</a> ·
-  <a href="#-figures">Figures</a> ·
-  <a href="#-quickstart">Quickstart</a> ·
-  <a href="#-reproducing-results-agentdojo">Reproducing Results</a> ·
-  <a href="#-citation">Citation</a>
-</p>
-
 ---
 
 ## 🧾 Abstract
