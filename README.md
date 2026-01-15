@@ -2,8 +2,6 @@
 
 Official implementation of **AgentSentry**, an inference-time defense framework for tool-augmented LLM agents against **multi-turn indirect prompt injection (IPI)**.
 
-> **Anonymous code release:** https://anonymous.4open.science/r/AgentSentry
-
 ---
 
 ## Overview
