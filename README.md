@@ -74,7 +74,7 @@ First, clone the [agentdojo](https://github.com/ethz-spylab/agentdojo) repositor
 ```bash
 git clone https://github.com/ethz-spylab/agentdojo
 cd agentdojo
-
+```
 
 
 
@@ -91,6 +91,9 @@ DEFENSES = [
     "transformers_pi_detector",
     "spotlighting_with_delimiting",
     "repeat_user_prompt",
+     "melon",
+     "melon_aug",
+     "taskshiled",
     "agentsentry",
 ]
 ```
