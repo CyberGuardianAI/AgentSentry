@@ -63,13 +63,91 @@ A recommended structure (adapt as needed):
 ├── pi_detector.py                  # Main detection module (AgentSentry inference-time diagnostics + gating)
 └── README.md                       # Project overview, reproduction instructions, and artifact pointers
 
-
-## ⚙️ Installation
-
-AgentSentry is evaluated on **AgentDojo**. Please first install the AgentDojo benchmark environment.
-
-**1) Clone AgentDojo**
+---
+## Installation
+First, clone the [agentdojo](https://github.com/ethz-spylab/agentdojo) repository.
 ```bash
 git clone https://github.com/ethz-spylab/agentdojo
-cd agentdojo
+```
 
+Next, please follow the instructions in [agentdojo](https://github.com/ethz-spylab/agentdojo) to install the agentdojo environment.
+
+
+### Step 1: Add the interface
+
+In `agentdojo/src/agentdojo/agent_pipeline/agent_pipeline.py`, add the interface of MELON.
+```python
+from agentdojo.agent_pipeline.pi_detector import MELON
+
+...
+
+DEFENSES = [
+    "tool_filter",
+    "transformers_pi_detector",
+    "spotlighting_with_delimiting",
+    "repeat_user_prompt",
+    "melon",
+]
+```
+
+In `def from_config` function, add the MELON detector (similar to `tool_filter` and other defenses).
+```python
+
+if config.defense == "melon":
+    tools_loop = ToolsExecutionLoop(
+        [
+            ToolsExecutor(),
+            MELON(
+                llm,
+                threshold=0.1,
+            ),
+        ]
+    )
+    
+    pipeline = cls([system_message_component, init_query_component, llm, tools_loop])
+    pipeline.name = f"{llm_name}-{config.defense}"
+    return pipeline
+```
+
+## Step 2: Add the MELON detector
+
+Please copy the entire `pi_detector.py` to `agentdojo/src/agentdojo/agent_pipeline/pi_detector.py`. Rememeber to fill in the api key for the OpenAI model.
+
+Modifications:
+
+1. In `class PromptInjectionDetector`, the `query` function is modified by adding the `is_injection` argument in the `extra_args` dictionary. This is used for stopping the agent's execution when an attack is detected.
+2. The `class MELON` is added.
+
+## Run the experiments
+The instructions are the same as in [agentdojo](https://github.com/ethz-spylab/agentdojo).
+
+Here is an example command to run the experiments:
+```bash
+python -m agentdojo.scripts.benchmark --model gpt-4o-2024-05-13 --attack tool_knowledge --defense melon -s slack > gpt-4o-2024-05-13_tool_knowledge_melon_slack.log
+```
+
+## MELON Implementation in Other Repositories
+
+In `pi_detector.py`, we provide the implementation of MELON. You can use it in your own projects.
+
+## Contact
+
+If you have any questions, please contact [Kaijie Zhu](https://kaijiezhu11.github.io/).
+
+## Acknowledgments
+
+We thank the authors of [agentdojo](https://github.com/ethz-spylab/agentdojo) for providing the environment for the experiments.
+
+## Citation
+
+
+If you find this work useful, please cite:
+
+```bibtex
+@inproceedings{zhu2025melon,
+    title={MELON: Provable Defense Against Indirect Prompt Injection Attacks in AI Agents}, 
+    author={Zhu, Kaijie and Yang, Xianjun and Wang, Jindong and Guo, Wenbo and Wang, William Yang},
+    year={2025},
+    booktitle={International Conference on Machine Learning},
+}
+```
