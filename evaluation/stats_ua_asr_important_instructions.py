@@ -1,18 +1,19 @@
+# -*- coding: utf-8 -*-
 import json
 from pathlib import Path
 from typing import Dict, List, Tuple, Optional
 
 # =========================
-# 配置区：改这里即�?
+# 配置区：改这里即可
 # =========================
 
 SUITES = [
-    Path(r"/\runs\qwen3-max-2025-09-23-agentsentry\workspace"),
-    # 需要更�?suite 就继续加
+    Path(r"C:\Users\TianZhang\PycharmProjects\agentsentry\runs\qwen3-max-2025-09-23-agentsentry\workspace"),
+    # 需要更多 suite 就继续加
 ]
 
 ATTACK_TYPE = "important_instructions"
-EXPECTED_PER_USER: Optional[int] = 14  # 你这里是 14 �?injection；不想检查就�?None
+EXPECTED_PER_USER: Optional[int] = 14  # 你这里是 14 个 injection；不想检查就设 None
 PRINT_ATTACK_SUCCESS_CASES = True
 MAX_PRINT = 300  # 防止刷屏
 
@@ -39,7 +40,7 @@ def infer_user_task_id(json_path: Path) -> str:
     return "unknown_user_task"
 
 def infer_injection_id(data: Dict, json_path: Path) -> str:
-    # 优先�?json 里显式字段，其次用文件名
+    # 优先用 json 里显式字段，其次用文件名
     return str(data.get("injection_task_id") or data.get("injection_id") or json_path.stem)
 
 def format_case_line(i: int, suite_name: str, user_task_id: str, inj_id: str, utility: bool, security: bool, path: str) -> str:
@@ -56,8 +57,8 @@ def format_case_line(i: int, suite_name: str, user_task_id: str, inj_id: str, ut
 
 def evaluate_suite(base_dir: Path) -> Tuple[int, int, int, List[Dict]]:
     """
-    返回�?
-    total_cases: 样本�?
+    返回：
+    total_cases: 样本数
     ua_sum: utility==True 数量
     asr_sum: 攻击成功数量（按 security==True 的口径）
     asr_cases: 攻击成功样本详情列表
@@ -67,7 +68,7 @@ def evaluate_suite(base_dir: Path) -> Tuple[int, int, int, List[Dict]]:
     asr_sum = 0
     asr_cases: List[Dict] = []
 
-    print(f"\n=== 检�?suite: {base_dir.name} ===")
+    print(f"\n=== 检查 suite: {base_dir.name} ===")
 
     for user_dir in base_dir.glob("user_task_*"):
         atk_dir = user_dir / ATTACK_TYPE
@@ -113,7 +114,7 @@ def evaluate_suite(base_dir: Path) -> Tuple[int, int, int, List[Dict]]:
 
         # 每个 user_task 的样本数异常提示
         if EXPECTED_PER_USER is not None and per_user_count != EXPECTED_PER_USER:
-            print(f"[WARNING] {user_dir.name} �?{per_user_count} �?{ATTACK_TYPE}（期�?{EXPECTED_PER_USER}�?)
+            print(f"[WARNING] {user_dir.name} 有 {per_user_count} 个 {ATTACK_TYPE}（期望 {EXPECTED_PER_USER}）")
 
     return total_cases, ua_sum, asr_sum, asr_cases
 
@@ -130,7 +131,7 @@ def main():
         cases, ua, asr, asr_cases = evaluate_suite(suite_dir)
 
         if cases == 0:
-            print(f"[{suite_dir.name}] 没有找到 {ATTACK_TYPE} 结果�?)
+            print(f"[{suite_dir.name}] 没有找到 {ATTACK_TYPE} 结果。")
             continue
 
         avg_ua = ua / cases
@@ -138,30 +139,30 @@ def main():
 
         print(f"\nSuite: {suite_dir.name}")
         print(f"  总样本数: {cases}")
-        print(f"  UA 平均可用�? {avg_ua:.4f} ({avg_ua * 100:.2f}%)")
-        print(f"  ASR 平均攻击成功�? {avg_asr:.4f} ({avg_asr * 100:.2f}%)")
+        print(f"  UA 平均可用性: {avg_ua:.4f} ({avg_ua * 100:.2f}%)")
+        print(f"  ASR 平均攻击成功率: {avg_asr:.4f} ({avg_asr * 100:.2f}%)")
 
         global_total += cases
         global_ua += ua
         global_asr += asr
         global_asr_cases.extend(asr_cases)
 
-    print("\n========== 合并统计（所�?Suite�?==========")
+    print("\n========== 合并统计（所有 Suite） ==========")
 
     if global_total == 0:
-        print(f"没有找到任何 {ATTACK_TYPE} 的结果文件�?)
+        print(f"没有找到任何 {ATTACK_TYPE} 的结果文件。")
         return
 
     print(f"Attack type: {ATTACK_TYPE}")
     print(f"总样本数: {global_total}")
     print(f"全局 UA: {global_ua / global_total:.4f} ({global_ua / global_total * 100:.2f}%)")
-    print(f"全局 ASR(攻击成功�?: {global_asr / global_total:.4f} ({global_asr / global_total * 100:.2f}%)")
+    print(f"全局 ASR(攻击成功率): {global_asr / global_total:.4f} ({global_asr / global_total * 100:.2f}%)")
 
-    # 输出攻击成功样本列表（security==True�?
+    # 输出攻击成功样本列表（security==True）
     if PRINT_ATTACK_SUCCESS_CASES:
-        print("\n========== 攻击成功样本清单（security==True�?==========")
+        print("\n========== 攻击成功样本清单（security==True） ==========")
         if not global_asr_cases:
-            print("没有攻击成功样本�?)
+            print("没有攻击成功样本。")
         else:
             for i, item in enumerate(global_asr_cases[:MAX_PRINT], 1):
                 print(
@@ -176,7 +177,7 @@ def main():
                     )
                 )
             if len(global_asr_cases) > MAX_PRINT:
-                print(f"... 还有 {len(global_asr_cases) - MAX_PRINT} 条未打印（MAX_PRINT={MAX_PRINT}�?)
+                print(f"... 还有 {len(global_asr_cases) - MAX_PRINT} 条未打印（MAX_PRINT={MAX_PRINT}）")
 
 
 if __name__ == "__main__":
