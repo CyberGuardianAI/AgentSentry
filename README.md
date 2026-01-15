@@ -64,13 +64,16 @@ A recommended structure (adapt as needed):
 └── README.md                       # Project overview, reproduction instructions, and artifact pointers
 
 ---
-##⚙️ Installation
+## ⚙️ Installation
+
+AgentSentry is evaluated on the **AgentDojo** benchmark.
+
 First, clone the [agentdojo](https://github.com/ethz-spylab/agentdojo) repository.
+
 ```bash
 git clone https://github.com/ethz-spylab/agentdojo
-```
+cd agentdojo
 
-Next, please follow the instructions in [agentdojo](https://github.com/ethz-spylab/agentdojo) to install the agentdojo environment.
 
 
 ### Step 1: Add the interface
@@ -132,22 +135,9 @@ In `pi_detector.py`, we provide the implementation of MELON. You can use it in y
 
 ## Contact
 
-If you have any questions, please contact [Kaijie Zhu](https://kaijiezhu11.github.io/).
+If you have any questions, please contact ...
 
 ## Acknowledgments
 
 We thank the authors of [agentdojo](https://github.com/ethz-spylab/agentdojo) for providing the environment for the experiments.
 
-## Citation
-
-
-If you find this work useful, please cite:
-
-```bibtex
-@inproceedings{zhu2025melon,
-    title={MELON: Provable Defense Against Indirect Prompt Injection Attacks in AI Agents}, 
-    author={Zhu, Kaijie and Yang, Xianjun and Wang, Jindong and Guo, Wenbo and Wang, William Yang},
-    year={2025},
-    booktitle={International Conference on Machine Learning},
-}
-```
