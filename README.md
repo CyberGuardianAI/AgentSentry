@@ -38,8 +38,6 @@
 - **Outcome:** Enables **safe continuation** (policy-compliant) instead of terminating workflows or globally disabling tool use.
 - **Results (AgentDojo):** **ASR = 0%**, **UA = 74.55%** on average, improving UA by **+20.8 to +33.6** points over the strongest baselines without degrading benign performance.
 
-> Anonymous code release: **https://anonymous.4open.science/r/AgentSentry**
-
 ---
 
 ## 🧾 Abstract
