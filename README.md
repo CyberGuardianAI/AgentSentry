@@ -78,9 +78,9 @@ cd agentdojo
 
 ### Step 1: Add the interface
 
-In `agentdojo/src/agentdojo/agent_pipeline/agent_pipeline.py`, add the interface of MELON.
+In `agentdojo/src/agentdojo/agent_pipeline/agent_pipeline.py`, add the interface of agentsentry.
 ```python
-from agentdojo.agent_pipeline.pi_detector import MELON
+from agentdojo.agent_pipeline.pi_detector import agentsentry
 
 ...
 
@@ -89,18 +89,18 @@ DEFENSES = [
     "transformers_pi_detector",
     "spotlighting_with_delimiting",
     "repeat_user_prompt",
-    "melon",
+    "agentsentry",
 ]
 ```
 
-In `def from_config` function, add the MELON detector (similar to `tool_filter` and other defenses).
+In `def from_config` function, add the agentsentry detector (similar to `tool_filter` and other defenses).
 ```python
 
-if config.defense == "melon":
+if config.defense == "agentsentry":
     tools_loop = ToolsExecutionLoop(
         [
             ToolsExecutor(),
-            MELON(
+            agentsentry(
                 llm,
                 threshold=0.1,
             ),
@@ -112,26 +112,26 @@ if config.defense == "melon":
     return pipeline
 ```
 
-## Step 2: Add the MELON detector
+## Step 2: Add the agentsentry detector
 
 Please copy the entire `pi_detector.py` to `agentdojo/src/agentdojo/agent_pipeline/pi_detector.py`. Rememeber to fill in the api key for the OpenAI model.
 
 Modifications:
 
 1. In `class PromptInjectionDetector`, the `query` function is modified by adding the `is_injection` argument in the `extra_args` dictionary. This is used for stopping the agent's execution when an attack is detected.
-2. The `class MELON` is added.
+2. The `class agentsentry` is added.
 
 ## Run the experiments
 The instructions are the same as in [agentdojo](https://github.com/ethz-spylab/agentdojo).
 
 Here is an example command to run the experiments:
 ```bash
-python -m agentdojo.scripts.benchmark --model gpt-4o-2024-05-13 --attack tool_knowledge --defense melon -s slack > gpt-4o-2024-05-13_tool_knowledge_melon_slack.log
+python -m agentdojo.scripts.benchmark --model QWEN3_MAX_2025_09_23 --defense Agentsentry --attack important_instructions -ut user_task_20 -s workspace
 ```
 
-## MELON Implementation in Other Repositories
+## agentsentry Implementation in Other Repositories
 
-In `pi_detector.py`, we provide the implementation of MELON. You can use it in your own projects.
+In `pi_detector.py`, we provide the implementation of agentsentry. You can use it in your own projects.
 
 ## Contact
 
