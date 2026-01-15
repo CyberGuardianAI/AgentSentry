@@ -62,9 +62,9 @@ A recommended structure (adapt as needed):
 ├── visualization/                  # Plotting and figure-generation scripts/notebooks for paper-ready visuals
 ├── pi_detector.py                  # Main detection module (AgentSentry inference-time diagnostics + gating)
 └── README.md                       # Project overview, reproduction instructions, and artifact pointers
-
-
+```
 ---
+
 ## ⚙️ Installation
 
 AgentSentry is evaluated on the **AgentDojo** benchmark.
