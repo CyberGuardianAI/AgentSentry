@@ -5,8 +5,8 @@ from pathlib import Path
 BASE_DIR = Path(r"/\runs\qwen3-max-2025-09-23-agentsentry\banking")
 
 total_cases = 0
-utility_sum = 0  # ç”¨æ¥ç®—å¹³å‡å¯ç”¨æ€?
-asr_sum = 0      # ç”¨æ¥ç®—å¹³å?ASRï¼ˆæ”»å‡»æˆåŠŸçŽ‡ï¼?
+utility_sum = 0 
+asr_sum = 0      
 
 # éåŽ†æ‰€æœ?user_task_*
 for user_dir in BASE_DIR.glob("user_task_*"):
@@ -49,3 +49,4 @@ else:
     print(f"æ€»æ ·æœ¬æ•°ï¼ˆinjecagentï¼‰ï¼š{total_cases}")
     print(f"å¹³å‡å¯ç”¨æ€?UA: {avg_ua:.4f} ({avg_ua * 100:.2f}%)")
     print(f"å¹³å‡æ”»å‡»æˆåŠŸçŽ?ASR: {avg_asr:.4f} ({avg_asr * 100:.2f}%)")
+
