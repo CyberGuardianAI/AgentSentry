@@ -156,6 +156,16 @@ python -m agentdojo.scripts.benchmark --model QWEN3_MAX_2025_09_23 --defense Age
 
 In `pi_detector.py`, we provide the implementation of agentsentry. You can use it in your own projects.
 
+## OpenClaw Experimental Artifacts
+
+We provide two normalized artifact archives derived from our OpenClaw evaluation.
+
+- `agentsentry_batch_results.zip` contains the batch-level experimental outputs generated on OpenClaw.
+
+- `agentsentry_manual_evaluation_cases.zip` contains manually curated OpenClaw evaluation cases for qualitative inspection.
+
+Together, these artifacts summarize the OpenClaw evaluation results and provide supporting materials for reproducibility and manual verification.
+
 ## Acknowledgments
 
 We thank the authors of [agentdojo](https://github.com/ethz-spylab/agentdojo) for providing the environment for the experiments.
