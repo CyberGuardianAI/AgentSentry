@@ -25,7 +25,7 @@ Large language model (LLM) agents increasingly rely on external tools and retrie
 
 ---
 <p align="center">
-  <img src="assets/pipeline.pdf" alt="AgentSentry pipeline for defending against multi-turn IPI" width="980"/>
+  <img src="assets/pipeline.png" alt="AgentSentry pipeline for defending against multi-turn IPI" width="980"/>
 </p>
 
 <p align="center">
