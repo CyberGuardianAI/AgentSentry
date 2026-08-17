@@ -1,0 +1,1261 @@
+{
+  "schema_version": 1,
+  "released_at": "2026-08-17",
+  "model": "Qwen3-Max",
+  "benchmark": "AgentDojo",
+  "confidence_level": 0.95,
+  "interval_method": "Clopper-Pearson exact",
+  "denominators": {
+    "benign": 97,
+    "important_instructions": 665,
+    "tool_knowledge": 140,
+    "injecagent": 144,
+    "pooled_attacks": 949
+  },
+  "macro_average_definition": "Unweighted arithmetic mean over Important Instructions, Tool Knowledge, and InjecAgent.",
+  "provenance": {
+    "CausalArmor": "Independent public implementation; no official author code was verified.",
+    "AttriGuard": "Official Zenodo artifact.",
+    "IPIGuard": "Official code and bundled AgentDojo fork.",
+    "AgentArmor": "Independent paper-faithful AgentDojo reproduction; author method code was unavailable.",
+    "TraceAegis": "Independent paper-faithful AgentDojo adaptation; author method code was unavailable.",
+    "ProvSEEK-adapted": "AgentDojo online-defense adaptation of the official provenance architecture; not the original ProvSEEK metric."
+  },
+  "caveats": [
+    "CausalArmor attack counts are integer reconstructions from the audited aggregate table.",
+    "AgentArmor, TraceAegis, and ProvSEEK-adapted FPR values are lower bounds based on explicit block markers; the true intervention FPR may be higher.",
+    "All attack-family UA and ASR counts use the completed 949-case Qwen3-Max matrix."
+  ],
+  "entries": [
+    {
+      "model": "Qwen3-Max",
+      "defense": "CausalArmor",
+      "metrics": {
+        "CU": {
+          "defined": true,
+          "metric": {
+            "count": 67,
+            "denominator": 97,
+            "rate": 0.6907216494845361,
+            "percent": 69.072165,
+            "confidence_interval": [
+              0.5887685125273714,
+              0.7806605432019909
+            ],
+            "confidence_interval_percent": [
+              58.876851,
+              78.066054
+            ],
+            "confidence": 0.95,
+            "method": "Clopper-Pearson exact"
+          },
+          "evidence": "audited_raw_artifact"
+        },
+        "FPR": {
+          "defined": true,
+          "metric": {
+            "count": 64,
+            "denominator": 97,
+            "rate": 0.6597938144329897,
+            "percent": 65.979381,
+            "confidence_interval": [
+              0.5565784162394088,
+              0.7529588172318571
+            ],
+            "confidence_interval_percent": [
+              55.657842,
+              75.295882
+            ],
+            "confidence": 0.95,
+            "method": "Clopper-Pearson exact"
+          },
+          "evidence": "measured_live_intervention",
+          "note": "Measured from task-level live-intervention markers."
+        },
+        "important_UA": {
+          "defined": true,
+          "metric": {
+            "count": 330,
+            "denominator": 665,
+            "rate": 0.49624060150375937,
+            "percent": 49.62406,
+            "confidence_interval": [
+              0.4575768220035941,
+              0.534937882084147
+            ],
+            "confidence_interval_percent": [
+              45.757682,
+              53.493788
+            ],
+            "confidence": 0.95,
+            "method": "Clopper-Pearson exact"
+          },
+          "evidence": "table_integer_reconstruction"
+        },
+        "important_ASR": {
+          "defined": true,
+          "metric": {
+            "count": 88,
+            "denominator": 665,
+            "rate": 0.13233082706766916,
+            "percent": 13.233083,
+            "confidence_interval": [
+              0.10750307121176374,
+              0.16047359983443577
+            ],
+            "confidence_interval_percent": [
+              10.750307,
+              16.04736
+            ],
+            "confidence": 0.95,
+            "method": "Clopper-Pearson exact"
+          },
+          "evidence": "table_integer_reconstruction"
+        },
+        "tool_UA": {
+          "defined": true,
+          "metric": {
+            "count": 47,
+            "denominator": 140,
+            "rate": 0.3357142857142857,
+            "percent": 33.571429,
+            "confidence_interval": [
+              0.25817904851059736,
+              0.4203674230581337
+            ],
+            "confidence_interval_percent": [
+              25.817905,
+              42.036742
+            ],
+            "confidence": 0.95,
+            "method": "Clopper-Pearson exact"
+          },
+          "evidence": "table_integer_reconstruction"
+        },
+        "tool_ASR": {
+          "defined": true,
+          "metric": {
+            "count": 30,
+            "denominator": 140,
+            "rate": 0.21428571428571427,
+            "percent": 21.428571,
+            "confidence_interval": [
+              0.1494912846474015,
+              0.2915580613663563
+            ],
+            "confidence_interval_percent": [
+              14.949128,
+              29.155806
+            ],
+            "confidence": 0.95,
+            "method": "Clopper-Pearson exact"
+          },
+          "evidence": "table_integer_reconstruction"
+        },
+        "injecagent_UA": {
+          "defined": true,
+          "metric": {
+            "count": 111,
+            "denominator": 144,
+            "rate": 0.7708333333333334,
+            "percent": 77.083333,
+            "confidence_interval": [
+              0.693492155129134,
+              0.8366976155078709
+            ],
+            "confidence_interval_percent": [
+              69.349216,
+              83.669762
+            ],
+            "confidence": 0.95,
+            "method": "Clopper-Pearson exact"
+          },
+          "evidence": "table_integer_reconstruction"
+        },
+        "injecagent_ASR": {
+          "defined": true,
+          "metric": {
+            "count": 2,
+            "denominator": 144,
+            "rate": 0.013888888888888888,
+            "percent": 1.388889,
+            "confidence_interval": [
+              0.0016864569406176604,
+              0.04926946199526161
+            ],
+            "confidence_interval_percent": [
+              0.168646,
+              4.926946
+            ],
+            "confidence": 0.95,
+            "method": "Clopper-Pearson exact"
+          },
+          "evidence": "table_integer_reconstruction"
+        }
+      },
+      "macro_average_percent": {
+        "UA": 53.426274,
+        "ASR": 12.016848
+      },
+      "pooled_attack_cases": {
+        "UA": {
+          "count": 488,
+          "denominator": 949,
+          "rate": 0.5142255005268704,
+          "percent": 51.42255,
+          "confidence_interval": [
+            0.48189779257342136,
+            0.5464646817131158
+          ],
+          "confidence_interval_percent": [
+            48.189779,
+            54.646468
+          ],
+          "confidence": 0.95,
+          "method": "Clopper-Pearson exact"
+        },
+        "ASR": {
+          "count": 120,
+          "denominator": 949,
+          "rate": 0.12644889357218125,
+          "percent": 12.644889,
+          "confidence_interval": [
+            0.10596152343320449,
+            0.14928545493546386
+          ],
+          "confidence_interval_percent": [
+            10.596152,
+            14.928545
+          ],
+          "confidence": 0.95,
+          "method": "Clopper-Pearson exact"
+        }
+      }
+    },
+    {
+      "model": "Qwen3-Max",
+      "defense": "AttriGuard",
+      "metrics": {
+        "CU": {
+          "defined": true,
+          "metric": {
+            "count": 74,
+            "denominator": 97,
+            "rate": 0.7628865979381443,
+            "percent": 76.28866,
+            "confidence_interval": [
+              0.6657558061860682,
+              0.8433668137267984
+            ],
+            "confidence_interval_percent": [
+              66.575581,
+              84.336681
+            ],
+            "confidence": 0.95,
+            "method": "Clopper-Pearson exact"
+          },
+          "evidence": "audited_raw_artifact"
+        },
+        "FPR": {
+          "defined": true,
+          "metric": {
+            "count": 23,
+            "denominator": 97,
+            "rate": 0.23711340206185566,
+            "percent": 23.71134,
+            "confidence_interval": [
+              0.1566331862732016,
+              0.3342441938139318
+            ],
+            "confidence_interval_percent": [
+              15.663319,
+              33.424419
+            ],
+            "confidence": 0.95,
+            "method": "Clopper-Pearson exact"
+          },
+          "evidence": "measured_live_intervention",
+          "note": "Measured from task-level live-intervention markers."
+        },
+        "important_UA": {
+          "defined": true,
+          "metric": {
+            "count": 530,
+            "denominator": 665,
+            "rate": 0.7969924812030075,
+            "percent": 79.699248,
+            "confidence_interval": [
+              0.7643801951915324,
+              0.8269421887036466
+            ],
+            "confidence_interval_percent": [
+              76.43802,
+              82.694219
+            ],
+            "confidence": 0.95,
+            "method": "Clopper-Pearson exact"
+          },
+          "evidence": "audited_raw_949_case_matrix"
+        },
+        "important_ASR": {
+          "defined": true,
+          "metric": {
+            "count": 31,
+            "denominator": 665,
+            "rate": 0.04661654135338346,
+            "percent": 4.661654,
+            "confidence_interval": [
+              0.0318901317985154,
+              0.06551856344275075
+            ],
+            "confidence_interval_percent": [
+              3.189013,
+              6.551856
+            ],
+            "confidence": 0.95,
+            "method": "Clopper-Pearson exact"
+          },
+          "evidence": "audited_raw_949_case_matrix"
+        },
+        "tool_UA": {
+          "defined": true,
+          "metric": {
+            "count": 96,
+            "denominator": 140,
+            "rate": 0.6857142857142857,
+            "percent": 68.571429,
+            "confidence_interval": [
+              0.6018955372559638,
+              0.7614793145122538
+            ],
+            "confidence_interval_percent": [
+              60.189554,
+              76.147931
+            ],
+            "confidence": 0.95,
+            "method": "Clopper-Pearson exact"
+          },
+          "evidence": "audited_raw_949_case_matrix"
+        },
+        "tool_ASR": {
+          "defined": true,
+          "metric": {
+            "count": 23,
+            "denominator": 140,
+            "rate": 0.16428571428571428,
+            "percent": 16.428571,
+            "confidence_interval": [
+              0.10708566538065972,
+              0.23624137395807354
+            ],
+            "confidence_interval_percent": [
+              10.708567,
+              23.624137
+            ],
+            "confidence": 0.95,
+            "method": "Clopper-Pearson exact"
+          },
+          "evidence": "audited_raw_949_case_matrix"
+        },
+        "injecagent_UA": {
+          "defined": true,
+          "metric": {
+            "count": 110,
+            "denominator": 144,
+            "rate": 0.7638888888888888,
+            "percent": 76.388889,
+            "confidence_interval": [
+              0.6859940748109866,
+              0.8306078244181185
+            ],
+            "confidence_interval_percent": [
+              68.599407,
+              83.060782
+            ],
+            "confidence": 0.95,
+            "method": "Clopper-Pearson exact"
+          },
+          "evidence": "audited_raw_949_case_matrix"
+        },
+        "injecagent_ASR": {
+          "defined": true,
+          "metric": {
+            "count": 1,
+            "denominator": 144,
+            "rate": 0.006944444444444444,
+            "percent": 0.694444,
+            "confidence_interval": [
+              0.00017580265590371033,
+              0.03808333282978282
+            ],
+            "confidence_interval_percent": [
+              0.01758,
+              3.808333
+            ],
+            "confidence": 0.95,
+            "method": "Clopper-Pearson exact"
+          },
+          "evidence": "audited_raw_949_case_matrix"
+        }
+      },
+      "macro_average_percent": {
+        "UA": 74.886522,
+        "ASR": 7.261557
+      },
+      "pooled_attack_cases": {
+        "UA": {
+          "count": 736,
+          "denominator": 949,
+          "rate": 0.7755532139093783,
+          "percent": 77.555321,
+          "confidence_interval": [
+            0.7476482319899266,
+            0.8017362609239714
+          ],
+          "confidence_interval_percent": [
+            74.764823,
+            80.173626
+          ],
+          "confidence": 0.95,
+          "method": "Clopper-Pearson exact"
+        },
+        "ASR": {
+          "count": 55,
+          "denominator": 949,
+          "rate": 0.05795574288724974,
+          "percent": 5.795574,
+          "confidence_interval": [
+            0.04395504607453354,
+            0.07477246967764328
+          ],
+          "confidence_interval_percent": [
+            4.395505,
+            7.477247
+          ],
+          "confidence": 0.95,
+          "method": "Clopper-Pearson exact"
+        }
+      }
+    },
+    {
+      "model": "Qwen3-Max",
+      "defense": "IPIGuard",
+      "metrics": {
+        "CU": {
+          "defined": true,
+          "metric": {
+            "count": 75,
+            "denominator": 97,
+            "rate": 0.7731958762886598,
+            "percent": 77.319588,
+            "confidence_interval": [
+              0.6769959300036353,
+              0.8520739903565842
+            ],
+            "confidence_interval_percent": [
+              67.699593,
+              85.207399
+            ],
+            "confidence": 0.95,
+            "method": "Clopper-Pearson exact"
+          },
+          "evidence": "audited_raw_artifact"
+        },
+        "FPR": {
+          "defined": true,
+          "metric": {
+            "count": 38,
+            "denominator": 97,
+            "rate": 0.3917525773195876,
+            "percent": 39.175258,
+            "confidence_interval": [
+              0.29417612365102924,
+              0.49612492277597553
+            ],
+            "confidence_interval_percent": [
+              29.417612,
+              49.612492
+            ],
+            "confidence": 0.95,
+            "method": "Clopper-Pearson exact"
+          },
+          "evidence": "measured_live_intervention",
+          "note": "Measured from task-level live-intervention markers."
+        },
+        "important_UA": {
+          "defined": true,
+          "metric": {
+            "count": 428,
+            "denominator": 665,
+            "rate": 0.643609022556391,
+            "percent": 64.360902,
+            "confidence_interval": [
+              0.6058819656183597,
+              0.6800549353186907
+            ],
+            "confidence_interval_percent": [
+              60.588197,
+              68.005494
+            ],
+            "confidence": 0.95,
+            "method": "Clopper-Pearson exact"
+          },
+          "evidence": "audited_raw_949_case_matrix"
+        },
+        "important_ASR": {
+          "defined": true,
+          "metric": {
+            "count": 33,
+            "denominator": 665,
+            "rate": 0.04962406015037594,
+            "percent": 4.962406,
+            "confidence_interval": [
+              0.03440166766122623,
+              0.06898771579464469
+            ],
+            "confidence_interval_percent": [
+              3.440167,
+              6.898772
+            ],
+            "confidence": 0.95,
+            "method": "Clopper-Pearson exact"
+          },
+          "evidence": "audited_raw_949_case_matrix"
+        },
+        "tool_UA": {
+          "defined": true,
+          "metric": {
+            "count": 96,
+            "denominator": 140,
+            "rate": 0.6857142857142857,
+            "percent": 68.571429,
+            "confidence_interval": [
+              0.6018955372559638,
+              0.7614793145122538
+            ],
+            "confidence_interval_percent": [
+              60.189554,
+              76.147931
+            ],
+            "confidence": 0.95,
+            "method": "Clopper-Pearson exact"
+          },
+          "evidence": "audited_raw_949_case_matrix"
+        },
+        "tool_ASR": {
+          "defined": true,
+          "metric": {
+            "count": 18,
+            "denominator": 140,
+            "rate": 0.12857142857142856,
+            "percent": 12.857143,
+            "confidence_interval": [
+              0.07801271233366508,
+              0.1955688707836818
+            ],
+            "confidence_interval_percent": [
+              7.801271,
+              19.556887
+            ],
+            "confidence": 0.95,
+            "method": "Clopper-Pearson exact"
+          },
+          "evidence": "audited_raw_949_case_matrix"
+        },
+        "injecagent_UA": {
+          "defined": true,
+          "metric": {
+            "count": 99,
+            "denominator": 144,
+            "rate": 0.6875,
+            "percent": 68.75,
+            "confidence_interval": [
+              0.6050180460447862,
+              0.7620797237935442
+            ],
+            "confidence_interval_percent": [
+              60.501805,
+              76.207972
+            ],
+            "confidence": 0.95,
+            "method": "Clopper-Pearson exact"
+          },
+          "evidence": "audited_raw_949_case_matrix"
+        },
+        "injecagent_ASR": {
+          "defined": true,
+          "metric": {
+            "count": 7,
+            "denominator": 144,
+            "rate": 0.04861111111111111,
+            "percent": 4.861111,
+            "confidence_interval": [
+              0.019764800579206716,
+              0.09759155392851782
+            ],
+            "confidence_interval_percent": [
+              1.97648,
+              9.759155
+            ],
+            "confidence": 0.95,
+            "method": "Clopper-Pearson exact"
+          },
+          "evidence": "audited_raw_949_case_matrix"
+        }
+      },
+      "macro_average_percent": {
+        "UA": 67.227444,
+        "ASR": 7.56022
+      },
+      "pooled_attack_cases": {
+        "UA": {
+          "count": 623,
+          "denominator": 949,
+          "rate": 0.6564805057955743,
+          "percent": 65.648051,
+          "confidence_interval": [
+            0.6252905307560405,
+            0.6866956100561555
+          ],
+          "confidence_interval_percent": [
+            62.529053,
+            68.669561
+          ],
+          "confidence": 0.95,
+          "method": "Clopper-Pearson exact"
+        },
+        "ASR": {
+          "count": 58,
+          "denominator": 949,
+          "rate": 0.06111696522655427,
+          "percent": 6.111697,
+          "confidence_interval": [
+            0.046732173261663484,
+            0.0782947067029871
+          ],
+          "confidence_interval_percent": [
+            4.673217,
+            7.829471
+          ],
+          "confidence": 0.95,
+          "method": "Clopper-Pearson exact"
+        }
+      }
+    },
+    {
+      "model": "Qwen3-Max",
+      "defense": "AgentArmor",
+      "metrics": {
+        "CU": {
+          "defined": true,
+          "metric": {
+            "count": 75,
+            "denominator": 97,
+            "rate": 0.7731958762886598,
+            "percent": 77.319588,
+            "confidence_interval": [
+              0.6769959300036353,
+              0.8520739903565842
+            ],
+            "confidence_interval_percent": [
+              67.699593,
+              85.207399
+            ],
+            "confidence": 0.95,
+            "method": "Clopper-Pearson exact"
+          },
+          "evidence": "audited_raw_artifact"
+        },
+        "FPR": {
+          "defined": true,
+          "metric": {
+            "count": 9,
+            "denominator": 97,
+            "rate": 0.09278350515463918,
+            "percent": 9.278351,
+            "confidence_interval": [
+              0.043309572669830855,
+              0.1688361894389906
+            ],
+            "confidence_interval_percent": [
+              4.330957,
+              16.883619
+            ],
+            "confidence": 0.95,
+            "method": "Clopper-Pearson exact"
+          },
+          "evidence": "explicit_block_lower_bound",
+          "note": "Exact interval for the observed explicit-block marker rate; the true intervention FPR may be higher."
+        },
+        "important_UA": {
+          "defined": true,
+          "metric": {
+            "count": 401,
+            "denominator": 665,
+            "rate": 0.6030075187969924,
+            "percent": 60.300752,
+            "confidence_interval": [
+              0.5646788075068933,
+              0.6404177991823019
+            ],
+            "confidence_interval_percent": [
+              56.467881,
+              64.04178
+            ],
+            "confidence": 0.95,
+            "method": "Clopper-Pearson exact"
+          },
+          "evidence": "audited_raw_949_case_matrix"
+        },
+        "important_ASR": {
+          "defined": true,
+          "metric": {
+            "count": 0,
+            "denominator": 665,
+            "rate": 0.0,
+            "percent": 0.0,
+            "confidence_interval": [
+              0.0,
+              0.005531829916014192
+            ],
+            "confidence_interval_percent": [
+              0.0,
+              0.553183
+            ],
+            "confidence": 0.95,
+            "method": "Clopper-Pearson exact"
+          },
+          "evidence": "audited_raw_949_case_matrix"
+        },
+        "tool_UA": {
+          "defined": true,
+          "metric": {
+            "count": 37,
+            "denominator": 140,
+            "rate": 0.2642857142857143,
+            "percent": 26.428571,
+            "confidence_interval": [
+              0.19340331455576668,
+              0.3454192810749107
+            ],
+            "confidence_interval_percent": [
+              19.340331,
+              34.541928
+            ],
+            "confidence": 0.95,
+            "method": "Clopper-Pearson exact"
+          },
+          "evidence": "audited_raw_949_case_matrix"
+        },
+        "tool_ASR": {
+          "defined": true,
+          "metric": {
+            "count": 12,
+            "denominator": 140,
+            "rate": 0.08571428571428572,
+            "percent": 8.571429,
+            "confidence_interval": [
+              0.04507586147115397,
+              0.14493883490263826
+            ],
+            "confidence_interval_percent": [
+              4.507586,
+              14.493883
+            ],
+            "confidence": 0.95,
+            "method": "Clopper-Pearson exact"
+          },
+          "evidence": "audited_raw_949_case_matrix"
+        },
+        "injecagent_UA": {
+          "defined": true,
+          "metric": {
+            "count": 91,
+            "denominator": 144,
+            "rate": 0.6319444444444444,
+            "percent": 63.194444,
+            "confidence_interval": [
+              0.5476286224711566,
+              0.7107110426050913
+            ],
+            "confidence_interval_percent": [
+              54.762862,
+              71.071104
+            ],
+            "confidence": 0.95,
+            "method": "Clopper-Pearson exact"
+          },
+          "evidence": "audited_raw_949_case_matrix"
+        },
+        "injecagent_ASR": {
+          "defined": true,
+          "metric": {
+            "count": 0,
+            "denominator": 144,
+            "rate": 0.0,
+            "percent": 0.0,
+            "confidence_interval": [
+              0.0,
+              0.025291881487516654
+            ],
+            "confidence_interval_percent": [
+              0.0,
+              2.529188
+            ],
+            "confidence": 0.95,
+            "method": "Clopper-Pearson exact"
+          },
+          "evidence": "audited_raw_949_case_matrix"
+        }
+      },
+      "macro_average_percent": {
+        "UA": 49.974589,
+        "ASR": 2.857143
+      },
+      "pooled_attack_cases": {
+        "UA": {
+          "count": 529,
+          "denominator": 949,
+          "rate": 0.5574288724973656,
+          "percent": 55.742887,
+          "confidence_interval": [
+            0.5251638417738558,
+            0.5893364702655208
+          ],
+          "confidence_interval_percent": [
+            52.516384,
+            58.933647
+          ],
+          "confidence": 0.95,
+          "method": "Clopper-Pearson exact"
+        },
+        "ASR": {
+          "count": 12,
+          "denominator": 949,
+          "rate": 0.012644889357218124,
+          "percent": 1.264489,
+          "confidence_interval": [
+            0.006550403632965359,
+            0.021983808298720042
+          ],
+          "confidence_interval_percent": [
+            0.65504,
+            2.198381
+          ],
+          "confidence": 0.95,
+          "method": "Clopper-Pearson exact"
+        }
+      }
+    },
+    {
+      "model": "Qwen3-Max",
+      "defense": "TraceAegis",
+      "metrics": {
+        "CU": {
+          "defined": true,
+          "metric": {
+            "count": 64,
+            "denominator": 97,
+            "rate": 0.6597938144329897,
+            "percent": 65.979381,
+            "confidence_interval": [
+              0.5565784162394088,
+              0.7529588172318571
+            ],
+            "confidence_interval_percent": [
+              55.657842,
+              75.295882
+            ],
+            "confidence": 0.95,
+            "method": "Clopper-Pearson exact"
+          },
+          "evidence": "audited_raw_artifact"
+        },
+        "FPR": {
+          "defined": true,
+          "metric": {
+            "count": 33,
+            "denominator": 97,
+            "rate": 0.3402061855670103,
+            "percent": 34.020619,
+            "confidence_interval": [
+              0.24704118276814288,
+              0.44342158376059115
+            ],
+            "confidence_interval_percent": [
+              24.704118,
+              44.342158
+            ],
+            "confidence": 0.95,
+            "method": "Clopper-Pearson exact"
+          },
+          "evidence": "explicit_block_lower_bound",
+          "note": "Exact interval for the observed explicit-block marker rate; the true intervention FPR may be higher."
+        },
+        "important_UA": {
+          "defined": true,
+          "metric": {
+            "count": 361,
+            "denominator": 665,
+            "rate": 0.5428571428571428,
+            "percent": 54.285714,
+            "confidence_interval": [
+              0.50412389909551,
+              0.5812084393739823
+            ],
+            "confidence_interval_percent": [
+              50.41239,
+              58.120844
+            ],
+            "confidence": 0.95,
+            "method": "Clopper-Pearson exact"
+          },
+          "evidence": "audited_raw_949_case_matrix"
+        },
+        "important_ASR": {
+          "defined": true,
+          "metric": {
+            "count": 23,
+            "denominator": 665,
+            "rate": 0.03458646616541353,
+            "percent": 3.458647,
+            "confidence_interval": [
+              0.02204875597441049,
+              0.05144640825663893
+            ],
+            "confidence_interval_percent": [
+              2.204876,
+              5.144641
+            ],
+            "confidence": 0.95,
+            "method": "Clopper-Pearson exact"
+          },
+          "evidence": "audited_raw_949_case_matrix"
+        },
+        "tool_UA": {
+          "defined": true,
+          "metric": {
+            "count": 38,
+            "denominator": 140,
+            "rate": 0.2714285714285714,
+            "percent": 27.142857,
+            "confidence_interval": [
+              0.1997799674738542,
+              0.3530129656186899
+            ],
+            "confidence_interval_percent": [
+              19.977997,
+              35.301297
+            ],
+            "confidence": 0.95,
+            "method": "Clopper-Pearson exact"
+          },
+          "evidence": "audited_raw_949_case_matrix"
+        },
+        "tool_ASR": {
+          "defined": true,
+          "metric": {
+            "count": 7,
+            "denominator": 140,
+            "rate": 0.05,
+            "percent": 5.0,
+            "confidence_interval": [
+              0.02033612998431822,
+              0.10030493431244891
+            ],
+            "confidence_interval_percent": [
+              2.033613,
+              10.030493
+            ],
+            "confidence": 0.95,
+            "method": "Clopper-Pearson exact"
+          },
+          "evidence": "audited_raw_949_case_matrix"
+        },
+        "injecagent_UA": {
+          "defined": true,
+          "metric": {
+            "count": 88,
+            "denominator": 144,
+            "rate": 0.6111111111111112,
+            "percent": 61.111111,
+            "confidence_interval": [
+              0.5263967828344346,
+              0.691154999814733
+            ],
+            "confidence_interval_percent": [
+              52.639678,
+              69.1155
+            ],
+            "confidence": 0.95,
+            "method": "Clopper-Pearson exact"
+          },
+          "evidence": "audited_raw_949_case_matrix"
+        },
+        "injecagent_ASR": {
+          "defined": true,
+          "metric": {
+            "count": 0,
+            "denominator": 144,
+            "rate": 0.0,
+            "percent": 0.0,
+            "confidence_interval": [
+              0.0,
+              0.025291881487516654
+            ],
+            "confidence_interval_percent": [
+              0.0,
+              2.529188
+            ],
+            "confidence": 0.95,
+            "method": "Clopper-Pearson exact"
+          },
+          "evidence": "audited_raw_949_case_matrix"
+        }
+      },
+      "macro_average_percent": {
+        "UA": 47.513228,
+        "ASR": 2.819549
+      },
+      "pooled_attack_cases": {
+        "UA": {
+          "count": 487,
+          "denominator": 949,
+          "rate": 0.5131717597471022,
+          "percent": 51.317176,
+          "confidence_interval": [
+            0.48084549799660375,
+            0.5454160523685487
+          ],
+          "confidence_interval_percent": [
+            48.08455,
+            54.541605
+          ],
+          "confidence": 0.95,
+          "method": "Clopper-Pearson exact"
+        },
+        "ASR": {
+          "count": 30,
+          "denominator": 949,
+          "rate": 0.03161222339304531,
+          "percent": 3.161222,
+          "confidence_interval": [
+            0.0214281950202917,
+            0.0448225002886925
+          ],
+          "confidence_interval_percent": [
+            2.14282,
+            4.48225
+          ],
+          "confidence": 0.95,
+          "method": "Clopper-Pearson exact"
+        }
+      }
+    },
+    {
+      "model": "Qwen3-Max",
+      "defense": "ProvSEEK-adapted",
+      "metrics": {
+        "CU": {
+          "defined": true,
+          "metric": {
+            "count": 52,
+            "denominator": 97,
+            "rate": 0.5360824742268041,
+            "percent": 53.608247,
+            "confidence_interval": [
+              0.431930288577658,
+              0.6379722655400104
+            ],
+            "confidence_interval_percent": [
+              43.193029,
+              63.797227
+            ],
+            "confidence": 0.95,
+            "method": "Clopper-Pearson exact"
+          },
+          "evidence": "audited_raw_artifact"
+        },
+        "FPR": {
+          "defined": true,
+          "metric": {
+            "count": 49,
+            "denominator": 97,
+            "rate": 0.5051546391752577,
+            "percent": 50.515464,
+            "confidence_interval": [
+              0.4017244022033872,
+              0.6082617260090968
+            ],
+            "confidence_interval_percent": [
+              40.17244,
+              60.826173
+            ],
+            "confidence": 0.95,
+            "method": "Clopper-Pearson exact"
+          },
+          "evidence": "explicit_block_lower_bound",
+          "note": "Exact interval for the observed explicit-block marker rate; the true intervention FPR may be higher."
+        },
+        "important_UA": {
+          "defined": true,
+          "metric": {
+            "count": 104,
+            "denominator": 665,
+            "rate": 0.15639097744360902,
+            "percent": 15.639098,
+            "confidence_interval": [
+              0.12960719757645317,
+              0.1862653689742727
+            ],
+            "confidence_interval_percent": [
+              12.96072,
+              18.626537
+            ],
+            "confidence": 0.95,
+            "method": "Clopper-Pearson exact"
+          },
+          "evidence": "audited_raw_949_case_matrix"
+        },
+        "important_ASR": {
+          "defined": true,
+          "metric": {
+            "count": 30,
+            "denominator": 665,
+            "rate": 0.045112781954887216,
+            "percent": 4.511278,
+            "confidence_interval": [
+              0.030641169071145818,
+              0.06377746249286076
+            ],
+            "confidence_interval_percent": [
+              3.064117,
+              6.377746
+            ],
+            "confidence": 0.95,
+            "method": "Clopper-Pearson exact"
+          },
+          "evidence": "audited_raw_949_case_matrix"
+        },
+        "tool_UA": {
+          "defined": true,
+          "metric": {
+            "count": 41,
+            "denominator": 140,
+            "rate": 0.29285714285714287,
+            "percent": 29.285714,
+            "confidence_interval": [
+              0.21905040523027577,
+              0.3756566500877633
+            ],
+            "confidence_interval_percent": [
+              21.905041,
+              37.565665
+            ],
+            "confidence": 0.95,
+            "method": "Clopper-Pearson exact"
+          },
+          "evidence": "audited_raw_949_case_matrix"
+        },
+        "tool_ASR": {
+          "defined": true,
+          "metric": {
+            "count": 64,
+            "denominator": 140,
+            "rate": 0.45714285714285713,
+            "percent": 45.714286,
+            "confidence_interval": [
+              0.37275814551185804,
+              0.5433792481142299
+            ],
+            "confidence_interval_percent": [
+              37.275815,
+              54.337925
+            ],
+            "confidence": 0.95,
+            "method": "Clopper-Pearson exact"
+          },
+          "evidence": "audited_raw_949_case_matrix"
+        },
+        "injecagent_UA": {
+          "defined": true,
+          "metric": {
+            "count": 65,
+            "denominator": 144,
+            "rate": 0.4513888888888889,
+            "percent": 45.138889,
+            "confidence_interval": [
+              0.3684040239278416,
+              0.536414936464376
+            ],
+            "confidence_interval_percent": [
+              36.840402,
+              53.641494
+            ],
+            "confidence": 0.95,
+            "method": "Clopper-Pearson exact"
+          },
+          "evidence": "audited_raw_949_case_matrix"
+        },
+        "injecagent_ASR": {
+          "defined": true,
+          "metric": {
+            "count": 1,
+            "denominator": 144,
+            "rate": 0.006944444444444444,
+            "percent": 0.694444,
+            "confidence_interval": [
+              0.00017580265590371033,
+              0.03808333282978282
+            ],
+            "confidence_interval_percent": [
+              0.01758,
+              3.808333
+            ],
+            "confidence": 0.95,
+            "method": "Clopper-Pearson exact"
+          },
+          "evidence": "audited_raw_949_case_matrix"
+        }
+      },
+      "macro_average_percent": {
+        "UA": 30.021234,
+        "ASR": 16.973336
+      },
+      "pooled_attack_cases": {
+        "UA": {
+          "count": 210,
+          "denominator": 949,
+          "rate": 0.22128556375131717,
+          "percent": 22.128556,
+          "confidence_interval": [
+            0.19524604573009083,
+            0.24906699228105833
+          ],
+          "confidence_interval_percent": [
+            19.524605,
+            24.906699
+          ],
+          "confidence": 0.95,
+          "method": "Clopper-Pearson exact"
+        },
+        "ASR": {
+          "count": 95,
+          "denominator": 949,
+          "rate": 0.10010537407797682,
+          "percent": 10.010537,
+          "confidence_interval": [
+            0.0817470729809377,
+            0.1209868853311904
+          ],
+          "confidence_interval_percent": [
+            8.174707,
+            12.098689
+          ],
+          "confidence": 0.95,
+          "method": "Clopper-Pearson exact"
+        }
+      }
+    }
+  ]
+}
