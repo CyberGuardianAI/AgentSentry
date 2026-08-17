@@ -34,30 +34,6 @@ Large language model (LLM) agents increasingly rely on external tools and retrie
 
 ---
 
-## AgentSentry v7 and Qwen3-Max Baselines
-
-This focused update publishes only the revised AgentSentry v7 implementation and the newly audited Qwen3-Max results for six additional comparison methods.
-
-- **AgentSentry v7 source:** [`agentsentry_v7/`](agentsentry_v7/) or the downloadable [`artifacts/agentsentry_v7_source.zip`](artifacts/agentsentry_v7_source.zip).
-- **Six-method Qwen3-Max results:** [`results/qwen3max_six_baselines/`](results/qwen3max_six_baselines/), including exact counts, 95% Clopper--Pearson intervals, evidence labels, CSV, and JSON.
-- **Included comparison methods:** CausalArmor, AttriGuard, IPIGuard, AgentArmor, TraceAegis, and ProvSEEK-adapted.
-
-Source archive SHA-256: `9747b040838578845d3e0dbab26b9ac60c3e8bce2337666a10d2197d774bed9d`.
-
-| Defense | CU | FPR | Important UA/ASR | Tool Knowledge UA/ASR | InjecAgent UA/ASR | Avg. UA/ASR |
-|---|---:|---:|---:|---:|---:|---:|
-| CausalArmor | 69.07 | 65.98 | 49.62/13.23 | 33.57/21.43 | 77.08/1.39 | 53.43/12.02 |
-| AttriGuard | 76.29 | 23.71 | 79.70/4.66 | 68.57/16.43 | 76.39/0.69 | 74.89/7.26 |
-| IPIGuard | 77.32 | 39.18 | 64.36/4.96 | 68.57/12.86 | 68.75/4.86 | 67.23/7.56 |
-| AgentArmor | 77.32 | >=9.28 | 60.30/0.00 | 26.43/8.57 | 63.19/0.00 | 49.97/2.86 |
-| TraceAegis | 65.98 | >=34.02 | 54.29/3.46 | 27.14/5.00 | 61.11/0.00 | 47.51/2.82 |
-| ProvSEEK-adapted | 53.61 | >=50.52 | 15.64/4.51 | 29.29/45.71 | 45.14/0.69 | 30.02/16.97 |
-
-All values are percentages. Exact counts and 95% intervals are provided in the linked result directory; `>=` marks FPR lower bounds derived from explicit block markers.
-
-The repository-root `pi_detector.py` and the older installation notes below are retained for the original submitted artifact. Use [`agentsentry_v7/README.md`](agentsentry_v7/README.md) for the revised v7 implementation.
-
----
 
 ## 🧠 Threat Model
 
