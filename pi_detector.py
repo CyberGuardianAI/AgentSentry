@@ -1788,20 +1788,18 @@ class AgentSentry:
         B: int = 0,
         tau_ace: float = 0.3,
         tau_ie: float = 0.3,
-        gamma: float = 0.5,
+        gamma: float = 0.25,
         action_sim_threshold: float = 0.6,
         mode: Literal["message", "full_conversation"] = "full_conversation",
         raise_on_injection: bool = False,
         paper_mode: bool = True,
         ablation: AblationConfig | None = None,
         high_risk_tools: list[str] | None = None,
-        # ---- NEW: runtime-intervention / calibration knobs (single significance level
-        # `alpha` + a calibrated benign baseline `p0_suff`, replacing tau_ie/tau_ace/gamma) ----
+        # ---- Runtime-intervention / calibration knobs ----
         p0_suff: float = 0.20,
-        delta_min: float = 0.34,
+        delta_l: float = 0.0,
+        delta_m: float = 0.0,
         suff_min: float = 0.50,
-        cusum_k: float = 0.10,
-        cusum_h: float = 0.50,
     ) -> None:
         self.llm = llm
         self.window_size = int(window_size)
@@ -1817,17 +1815,13 @@ class AgentSentry:
         self.raise_on_injection = bool(raise_on_injection)
         self.mode = mode
 
-        # Runtime-interventional decision parameters. The decision (Sec. IV-F,
-        # rebuilt) uses controlled replay contrasts; its only free knobs are a
-        # significance level `alpha`, a calibrated benign masked-probe baseline
-        # `p0_suff` (see calibrate_null()), an interpretable effect-size floor
-        # `delta_min` (probability units), a minimum semantic probe-positive rate `suff_min`, and the
-        # CUSUM (sequential temporal test) parameters (cusum_k drift, cusum_h alarm).
+        # Runtime-interventional decision parameters. Local attribution uses
+        # separate live-policy and mediator-projection floors; temporal attribution
+        # uses the OLS trend threshold `gamma` declared above.
         self.p0_suff = float(p0_suff)
-        self.delta_min = float(delta_min)
+        self.delta_l = float(delta_l)
+        self.delta_m = float(delta_m)
         self.suff_min = float(suff_min)
-        self.cusum_k = float(cusum_k)
-        self.cusum_h = float(cusum_h)
         self._validate_decision_parameters()
 
         self.ablation = ablation or AblationConfig()
@@ -2020,45 +2014,44 @@ class AgentSentry:
         *,
         alpha: float | None = None,
         p0_suff: float | None = None,
-        delta_min: float | None = None,
+        delta_l: float | None = None,
+        delta_m: float | None = None,
         suff_min: float | None = None,
-        cusum_k: float | None = None,
-        cusum_h: float | None = None,
+        gamma: float | None = None,
     ) -> None:
-        """Adjust the causal-decision knobs at runtime.
+        """Adjust the replay-attribution decision knobs at runtime.
 
-        Used by the alpha/delta sensitivity-analysis driver (reviewer R1#3): sweep a
-        single significance level / effect-size floor and re-run, instead of tuning
-        three opaque tau/gamma thresholds.
+        Used by threshold-sensitivity drivers without changing replay operators.
         """
         if alpha is not None:
             self.alpha = float(alpha)
         if p0_suff is not None:
             self.p0_suff = float(p0_suff)
-        if delta_min is not None:
-            self.delta_min = float(delta_min)
+        if delta_l is not None:
+            self.delta_l = float(delta_l)
+        if delta_m is not None:
+            self.delta_m = float(delta_m)
         if suff_min is not None:
             self.suff_min = float(suff_min)
-        if cusum_k is not None:
-            self.cusum_k = float(cusum_k)
-        if cusum_h is not None:
-            self.cusum_h = float(cusum_h)
+        if gamma is not None:
+            self.gamma = float(gamma)
         self._validate_decision_parameters()
 
     def _validate_decision_parameters(self) -> None:
         probability_parameters = {
             "p0_suff": self.p0_suff,
-            "delta_min": self.delta_min,
+            "delta_l": self.delta_l,
+            "delta_m": self.delta_m,
             "suff_min": self.suff_min,
-            "cusum_k": self.cusum_k,
+            "gamma": self.gamma,
         }
         if not (0.0 < self.alpha < 1.0):
             raise ValueError("alpha must be in (0, 1)")
         for name, value in probability_parameters.items():
             if not math.isfinite(value) or not (0.0 <= value <= 1.0):
                 raise ValueError(f"{name} must be finite and in [0, 1]")
-        if not math.isfinite(self.cusum_h) or self.cusum_h <= 0.0:
-            raise ValueError("cusum_h must be finite and greater than zero")
+        if self.window_size < 2:
+            raise ValueError("window_size must be at least two")
 
     def _calibration_trace(self) -> dict[str, Any]:
         ablation = self.ablation
@@ -2070,10 +2063,10 @@ class AgentSentry:
             "parameters": {
                 "alpha": self.alpha,
                 "p0_suff": self.p0_suff,
-                "delta_min": self.delta_min,
+                "delta_l": self.delta_l,
+                "delta_m": self.delta_m,
                 "suff_min": self.suff_min,
-                "cusum_k": self.cusum_k,
-                "cusum_h": self.cusum_h,
+                "gamma": self.gamma,
             },
         }
 
@@ -3764,9 +3757,8 @@ class AgentSentry:
                 "legacy_ace_hist": deque(maxlen=self.window_size),
                 "legacy_ie_hist": deque(maxlen=self.window_size),
                 "legacy_de_hist": deque(maxlen=self.window_size),
-                "projection_score_hist": deque(maxlen=self.window_size),
-                "projection_p_hist": deque(maxlen=self.window_size),
-                "cusum": 0.0,                                  # Page CUSUM sequential statistic
+                "user_view_score_hist": deque(maxlen=self.window_size),
+                "mediator_projection_score_hist": deque(maxlen=self.window_size),
                 "b": 0,
                 "takeover_detected": False,
                 "takeover_b": None,
@@ -3844,11 +3836,45 @@ class AgentSentry:
     #     user-preserving projection sensitivity. The probe is not a stand-alone claim
     #     that the live policy is controlled by mediator content.
     #
-    #   * Temporal. A Page CUSUM aggregates per-boundary replay evidence. It is a
-    #     sequential detector, not a longitudinal causal-effect estimator.
+    #   * Temporal. Short-window OLS trends summarize weakening user-view anchoring
+    #     and increasing mediator-projection support. This is a deterministic
+    #     sequential detector, not inferential regression or a longitudinal effect.
     # ====================================================================
 
     # ---------------------- statistics (no scipy dependency) ----------------------
+
+    @staticmethod
+    def _ols_slope(values: Sequence[float]) -> float:
+        """Return the OLS slope over equally spaced boundary positions."""
+        if len(values) < 2:
+            return 0.0
+        count = len(values)
+        time_mean = (count - 1) / 2.0
+        value_mean = sum(float(value) for value in values) / count
+        covariance = sum(
+            (index - time_mean) * (float(value) - value_mean)
+            for index, value in enumerate(values)
+        )
+        variance = sum((index - time_mean) ** 2 for index in range(count))
+        return float(covariance / variance) if variance > 0.0 else 0.0
+
+    @classmethod
+    def _sequential_ols_risk(
+        cls,
+        user_scores: Sequence[float],
+        mediator_scores: Sequence[float],
+        *,
+        window_size: int,
+    ) -> tuple[float, float, float, bool]:
+        """Compute the declared full-window structural OLS diagnostic."""
+        if len(user_scores) < window_size or len(mediator_scores) < window_size:
+            return 0.0, 0.0, 0.0, False
+        user_window = list(user_scores)[-window_size:]
+        mediator_window = list(mediator_scores)[-window_size:]
+        user_slope = cls._ols_slope(user_window)
+        mediator_slope = cls._ols_slope(mediator_window)
+        risk = 0.5 * (max(0.0, -user_slope) + max(0.0, mediator_slope))
+        return user_slope, mediator_slope, float(risk), True
 
     @staticmethod
     def _binom_pmf(k: int, n: int, p: float) -> float:
@@ -4240,10 +4266,8 @@ class AgentSentry:
                         and
                         self.ablation.use_llm_effect_validation
                         and not effect_fidelity_failure
-                        and (
-                            authorized is not True
-                            or effect_supported is not True
-                        )
+                        and authorized is True
+                        and effect_supported is not True
                     )
                     if needs_joint_adjudication:
                         effect_reconsideration = self._llm_effect_reconsidered(
@@ -4255,9 +4279,7 @@ class AgentSentry:
                             extra_args=extra_args,
                             execution_progress=execution_progress,
                         )
-                    effective_authorization = bool(
-                        authorized is True or effect_reconsideration is True
-                    )
+                    effective_authorization = authorized is True
                     effective_effect_support = bool(
                         effect_supported is True or effect_reconsideration is True
                     )
@@ -7459,17 +7481,6 @@ class AgentSentry:
             else attribution.probe_conditional_mediator_projection
         )
 
-        # Sequential aggregation combines local attribution scores. It is change
-        # detection over boundary-local contrasts, not a longitudinal causal estimand.
-        state.setdefault("projection_score_hist", deque(maxlen=self.window_size))
-        state.setdefault("projection_p_hist", deque(maxlen=self.window_size))
-        sequential_projection_score = (
-            min(primary_projection_score, probe_projection_score)
-            if ab.semantic_mode
-            else max(primary_projection_score, probe_projection_score)
-        )
-        state["projection_score_hist"].append(float(sequential_projection_score))
-
         # Deterministic replays are executable software contrasts, not independent
         # statistical samples. Exact tests are used only when the declared replay
         # protocol permits stochastic decoding.
@@ -7485,17 +7496,18 @@ class AgentSentry:
         # removing the injection (user kept) makes a malicious action disappear, while a
         # benign user-supported action persists. A positive value is evidence of sensitivity
         # to the projection operator; attribution additionally depends on projection fidelity.
-        positive_floor = max(0.0, float(self.delta_min))
+        live_projection_floor = max(0.0, float(self.delta_l))
+        mediator_projection_floor = max(0.0, float(self.delta_m))
         if stochastic_replay and sanitized_available:
             user_projection_p = self._fisher_exact_greater(succ_orig, K, succ_os, K)
             user_projection_significant = (
                 (user_projection_p <= self.alpha)
-                and (primary_projection_score > positive_floor)
+                and (primary_projection_score > live_projection_floor)
             )
         else:
             user_projection_p = 1.0
             user_projection_significant = sanitized_available and (
-                primary_projection_score > positive_floor
+                primary_projection_score > live_projection_floor
             )
         # The submitted reproduction path may retain its provenance corroborator. The
         # strict semantic profile disables it, so the revised verdict is driven only by
@@ -7526,7 +7538,7 @@ class AgentSentry:
                 and (P_probe > max(0.0, float(self.suff_min)))
             )
         probe_contract_reaches_live_action = bool(
-            probe_contract_unaligned and P_mask > positive_floor
+            probe_contract_unaligned and P_mask > mediator_projection_floor
         )
 
         # SECONDARY probe-conditional purification sensitivity: mask vs
@@ -7542,10 +7554,12 @@ class AgentSentry:
                 )
                 probe_projection_significant = (
                     (probe_projection_p <= self.alpha)
-                    and (probe_projection_score > positive_floor)
+                    and (probe_projection_score > mediator_projection_floor)
                 )
             else:
-                probe_projection_significant = probe_projection_score > positive_floor
+                probe_projection_significant = (
+                    probe_projection_score > mediator_projection_floor
+                )
             if stochastic_replay and (self.B > 0) and (K > 1):
                 probe_projection_ci = self._bootstrap_ci_diff(
                     probe_successes,
@@ -7557,11 +7571,8 @@ class AgentSentry:
                 )
                 probe_projection_significant = probe_projection_significant or (
                     probe_projection_ci[0] > 0.0
-                    and probe_projection_score > positive_floor
+                    and probe_projection_score > mediator_projection_floor
                 )
-        # Combined p-value is meaningful only for stochastic replay samples.
-        projection_best_p = min(user_projection_p, probe_projection_p)
-        state["projection_p_hist"].append(float(projection_best_p))
 
         # Commitment judges are lazy. They are needed when replay evidence selects
         # a repaired action, when projection failed, or when the projector explicitly
@@ -7636,7 +7647,7 @@ class AgentSentry:
                 sanitized_available=sanitized_available,
                 user_projection_significant=user_projection_significant,
                 primary_projection_score=primary_projection_score,
-                positive_floor=positive_floor,
+                positive_floor=live_projection_floor,
                 projection_contrast_valid=projection_contrast_valid,
                 live_action_grounded_evidence=live_action_grounded_evidence,
                 probe_projection_significant=probe_projection_significant,
@@ -7677,12 +7688,23 @@ class AgentSentry:
             probe_textual_control_carryover
             or live_action_textual_control_carryover
         )
+        residual_control_commitment_required = bool(
+            ab.semantic_mode
+            and a_star_conseq
+            and sanitized_available
+            and residual_projected_control
+            and not residual_projected_action
+            and masked_probe_survives
+            and probe_projection_significant
+            and projection_contrast_valid
+        )
         replay_requires_commitment_gate = bool(
             corroborated_projection_signal
             or live_projection_commitment_required
             or delayed_probe_action_match
             or probe_contract_commitment_required
             or textual_control_carryover
+            or residual_control_commitment_required
             or semantic_purify_failed
             or projection_requires_corroboration
             or consequential_commitment_required
@@ -7752,48 +7774,83 @@ class AgentSentry:
             effect_support=semantic_effect_support,
             require_effect_validation=ab.use_llm_effect_validation,
         )
+        residual_control_commitment_rejected = self._semantic_commitment_rejected(
+            required=residual_control_commitment_required,
+            authorization=semantic_authorization,
+            effect_support=semantic_effect_support,
+            require_effect_validation=ab.use_llm_effect_validation,
+        )
 
         # --- sequential / temporal diagnostic ---
-        # Page CUSUM on boundary-local projection sensitivity, restricted to an
-        # actual pending tool action (all tool names are treated uniformly in semantic mode).
-        projection_stat = sequential_projection_score if a_star_conseq else 0.0
-        prev_cusum = float(state.get("cusum", 0.0))
-        cur_cusum = max(0.0, prev_cusum + max(0.0, projection_stat) - self.cusum_k)
-        state["cusum"] = cur_cusum
-        cusum_alarm = cur_cusum >= self.cusum_h
-        # Windowed Fisher combination is disabled for deterministic stability replays.
-        fisher_p = (
-            self._fisher_combine(list(state["projection_p_hist"]))
-            if stochastic_replay and sanitized_available
-            else 1.0
+        # Non-replayable boundaries contribute zero online evidence while the
+        # physical boundary window continues to advance. This preserves a fixed
+        # boundary-time axis and prevents stale observations from being compressed.
+        temporal_applicable = bool(
+            not a_star_noop
+            and mask_control_reference is not None
+            and sanitized_available
+            and probe_regimes_executed
+            and projection_contrast_valid
         )
-        temporal_sig = stochastic_replay and (fisher_p <= self.alpha)
-
-        # OLS slope risk score retained for interpretability plots (Fig. 4 / Eq. 22).
-        def ols_slope(xs: list[float]) -> float:
-            if len(xs) < 2:
-                return 0.0
-            n = len(xs)
-            t_mean = (n - 1) / 2.0
-            x_mean = sum(xs) / n
-            cov = sum((ti - t_mean) * (xi - x_mean) for ti, xi in zip(range(n), xs))
-            var = sum((ti - t_mean) ** 2 for ti in range(n))
-            return float(cov / (var + 1e-12))
-
-        projection_slope = ols_slope(list(state["projection_score_hist"]))
-        R_t = cur_cusum
+        temporal_user_score = (
+            attribution.observed_mediator_user_view_substitution
+            if temporal_applicable
+            else 0.0
+        )
+        temporal_mediator_score = (
+            probe_projection_score if temporal_applicable else 0.0
+        )
+        state.setdefault("user_view_score_hist", deque(maxlen=self.window_size))
+        state.setdefault(
+            "mediator_projection_score_hist",
+            deque(maxlen=self.window_size),
+        )
+        state["user_view_score_hist"].append(float(temporal_user_score))
+        state["mediator_projection_score_hist"].append(
+            float(temporal_mediator_score)
+        )
+        (
+            user_view_slope,
+            mediator_projection_slope,
+            sequential_risk,
+            temporal_window_ready,
+        ) = self._sequential_ols_risk(
+            list(state["user_view_score_hist"]),
+            list(state["mediator_projection_score_hist"]),
+            window_size=self.window_size,
+        )
+        windowed_mediator_support = bool(
+            temporal_window_ready
+            and any(
+                score > mediator_projection_floor
+                for score in state["mediator_projection_score_hist"]
+            )
+        )
+        sequential_alarm = bool(
+            temporal_window_ready
+            and sequential_risk >= self.gamma
+            and windowed_mediator_support
+        )
+        R_t = sequential_risk
 
         # ---------------- decision routing ----------------
         unpurifiable = False
         effect_support_alert = False
         unaligned_probe_commitment_rejected = False
+        unauthorized_commitment_alert = False
+        temporal_alert = False
         if legacy_path:
             # Legacy effect-size rule on ordinal severity (for `agentsentry_no_ie`
             # and `use_causal_decision=False` comparisons).
             ie_sig_legacy = bool(legacy_ie >= self.tau_ie) if sanitized_available else False
+            legacy_ie_slope = (
+                self._ols_slope(list(state["legacy_ie_hist"]))
+                if len(state["legacy_ie_hist"]) >= self.window_size
+                else 0.0
+            )
             alert = bool(
                 (legacy_mu_orig > 0.0 and ie_sig_legacy)
-                or (ab.enable_temporal and projection_slope > 0 and ie_sig_legacy)
+                or (ab.enable_temporal and legacy_ie_slope > 0 and ie_sig_legacy)
             )
             risk_val = float(max(legacy_ie, 1.0))
         else:
@@ -7806,8 +7863,9 @@ class AgentSentry:
                 alert = boundary_alert
                 risk_val = 1.0 if boundary_alert else 0.0
             elif ab.semantic_mode:
-                v_unauth = residual_projected_action or (
+                unauthorized_commitment_alert = residual_projected_action or (
                     bool(replay_requires_commitment_gate)
+                    and bool(masked_probe_survives)
                     and (
                         semantic_authorization is False
                         or semantic_effect_support is False
@@ -7820,8 +7878,6 @@ class AgentSentry:
                         )
                     )
                 )
-            else:
-                v_unauth = (max([*(Vs_orig or []), *(Vs_mask or [])], default=0) == 1)
             unaligned_probe_commitment_rejected = bool(
                 ab.semantic_mode
                 and probe_contract_unaligned
@@ -7853,6 +7909,7 @@ class AgentSentry:
                     or textual_control_carryover
                     or unaligned_probe_commitment_rejected
                     or consequential_commitment_rejected
+                    or residual_control_commitment_rejected
                 )
                 # Explicit semantic-operator failure handling. No regex fallback is
                 # permitted. A projection failure is relevant when the live action
@@ -7862,7 +7919,7 @@ class AgentSentry:
                 projection_failure_relevant = bool(
                     semantic_purify_failed
                     and (
-                        P_mask > positive_floor
+                        P_mask > mediator_projection_floor
                         or user_projection_signal
                         or probe_contract_reaches_live_action
                     )
@@ -7891,8 +7948,12 @@ class AgentSentry:
                 # No sanitized regimes (orig_mask_only / no-sanitize ablation):
                 # fall back to masked-probe survival only (no sanitizer contrast).
                 boundary_alert = bool(masked_probe_survives)
-            temporal_alert = bool(ab.enable_temporal and a_star_conseq and (cusum_alarm or temporal_sig))
-            alert = bool(boundary_alert or temporal_alert)
+            temporal_alert = bool(ab.enable_temporal and sequential_alarm)
+            alert = bool(
+                boundary_alert
+                or temporal_alert
+                or unauthorized_commitment_alert
+            )
             risk_val = float(
                 max(
                     primary_projection_score,
@@ -7902,6 +7963,8 @@ class AgentSentry:
                     1.0 if consequential_commitment_rejected else 0.0,
                     1.0 if delayed_probe_action_match else 0.0,
                     1.0 if effect_support_alert else 0.0,
+                    1.0 if unauthorized_commitment_alert else 0.0,
+                    1.0 if residual_control_commitment_rejected else 0.0,
                 )
             )
             if ab.semantic_mode and ab.sanitization_only:
@@ -8065,6 +8128,10 @@ class AgentSentry:
                 decision_path = "probe_contract_commitment_rejection"
             elif textual_control_carryover:
                 decision_path = "textual_control_carryover"
+            elif residual_control_commitment_rejected:
+                decision_path = "residual_control_commitment_rejection"
+            elif unauthorized_commitment_alert:
+                decision_path = "semantic_commitment_rejection"
             elif projection_requires_corroboration and semantic_effect_support is not True:
                 decision_path = "unverified_parameter_effect_gate"
             elif temporal_alert:
@@ -8133,10 +8200,16 @@ class AgentSentry:
             qualitative_tags.append("live_action_argument_text_carryover")
         if unaligned_probe_commitment_rejected:
             qualitative_tags.append("semantic_commitment_rejected")
+        if unauthorized_commitment_alert:
+            qualitative_tags.append("unauthorized_commitment_alert")
         if residual_projected_control:
             qualitative_tags.append("residual_control_after_projection")
         if residual_projected_control and not residual_projected_action:
             qualitative_tags.append("residual_control_without_action_survival")
+        if residual_control_commitment_required:
+            qualitative_tags.append("residual_control_commitment_checked")
+        if residual_control_commitment_rejected:
+            qualitative_tags.append("residual_control_commitment_rejected")
         if repeat_guard_replanned:
             qualitative_tags.append("repeated_action_replanned")
         elif repeat_guard_triggered:
@@ -8181,8 +8254,18 @@ class AgentSentry:
             "probe_conditional_projection_p": (
                 round(probe_projection_p, 4) if probe_regimes_executed else None
             ),
-            "sequential_combined_p": round(fisher_p, 4),
-            "sequential_cusum": round(cur_cusum, 3),
+            "sequential_user_view_score": round(temporal_user_score, 3),
+            "sequential_mediator_projection_score": round(
+                temporal_mediator_score, 3
+            ),
+            "sequential_user_view_slope": round(user_view_slope, 3),
+            "sequential_mediator_projection_slope": round(
+                mediator_projection_slope, 3
+            ),
+            "sequential_risk": round(sequential_risk, 3),
+            "temporal_window_ready": bool(temporal_window_ready),
+            "windowed_mediator_support": bool(windowed_mediator_support),
+            "temporal_alert": bool(temporal_alert),
             "configured_replay_replicates": configured_replay_k,
             "effective_replay_replicates": effective_replay_k,
             "probe_regimes_executed": probe_regimes_executed,
@@ -8239,6 +8322,9 @@ class AgentSentry:
             },
             "semantic_authorization": semantic_authorization,
             "semantic_effect_support": semantic_effect_support,
+            "unauthorized_commitment_alert": bool(
+                unauthorized_commitment_alert
+            ),
             "masked_probe_authorization": masked_probe_authorization,
             "masked_probe_effect_support": masked_probe_effect_support,
             "projection_requires_corroboration": projection_requires_corroboration,
@@ -8263,9 +8349,17 @@ class AgentSentry:
             "consequential_commitment_rejected": bool(
                 consequential_commitment_rejected
             ),
+            "residual_control_commitment_required": bool(
+                residual_control_commitment_required
+            ),
+            "residual_control_commitment_rejected": bool(
+                residual_control_commitment_rejected
+            ),
             "textual_control_carryover": bool(textual_control_carryover),
             "semantic_commitment_rejected": bool(
                 unaligned_probe_commitment_rejected
+                or unauthorized_commitment_alert
+                or residual_control_commitment_rejected
             ),
             "commitment_gate_evaluated": bool(
                 replay_requires_commitment_gate and not ab.calibration_collection_mode
@@ -8362,8 +8456,9 @@ class AgentSentry:
                 f"masked_probe_p={masked_probe_p:.3f}",
                 f"user_projection_p={user_projection_p:.3f}",
                 f"probe_projection_p={probe_projection_p:.3f}",
-                f"fisher_p={fisher_p:.3f}",
-                f"cusum={cur_cusum:.2f}",
+                f"beta_U={user_view_slope:.2f}",
+                f"beta_M={mediator_projection_slope:.2f}",
+                f"temporal_risk={sequential_risk:.2f}",
                 f"probe_projection_ci={probe_projection_ci}",
                 f"alert={alert}", f"unpurifiable={unpurifiable}",
             )
