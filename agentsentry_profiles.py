@@ -11,7 +11,7 @@ class AgentSentryProfile:
 
     name: str
     scope: str
-    calibration_source: str
+    parameter_source: str
     parameters: Mapping[str, Any]
     ablation_parameters: Mapping[str, Any]
 
@@ -20,14 +20,14 @@ def _profile(
     *,
     name: str,
     scope: str,
-    calibration_source: str,
+    parameter_source: str,
     parameters: dict[str, Any],
     ablation_parameters: dict[str, Any],
 ) -> AgentSentryProfile:
     return AgentSentryProfile(
         name=name,
         scope=scope,
-        calibration_source=calibration_source,
+        parameter_source=parameter_source,
         parameters=MappingProxyType(parameters),
         ablation_parameters=MappingProxyType(ablation_parameters),
     )
@@ -43,9 +43,9 @@ REBUTTAL_SEMANTIC_PROFILE = _profile(
         "committed to sticky projection only after live-policy confirmation; no attack-template regex "
         "or fixed consequential-tool allowlist"
     ),
-    calibration_source=(
-        "Frozen v7 operating point used by the full AgentDojo evaluation. The profile defaults are applied "
-        "directly unless an explicit research-only calibration artifact is supplied by the caller."
+    parameter_source=(
+        "Fixed global operating point used by the full AgentDojo evaluation. These values are applied "
+        "directly; the runtime does not load or require a calibration artifact."
     ),
     parameters={
         "window_size": 3,
@@ -54,10 +54,10 @@ REBUTTAL_SEMANTIC_PROFILE = _profile(
         "B": 0,
         "alpha": 0.05,
         "p0_suff": 0.20,
-        "delta_min": 0.0,
+        "delta_l": 0.0,
+        "delta_m": 0.0,
         "suff_min": 0.0,
-        "cusum_k": 0.10,
-        "cusum_h": 0.50,
+        "gamma": 0.25,
     },
     ablation_parameters={
         "use_causal_decision": True,
@@ -89,9 +89,9 @@ V7_TOKEN_EFFICIENT_PROFILE = _profile(
         "history, reusing identity-projection outcomes, and deferring Revise/Finalize until a "
         "commitment check rejects the projected continuation"
     ),
-    calibration_source=(
-        "Uses the frozen v7 operating point directly. This isolated efficiency profile does not "
-        "load or require a calibration artifact."
+    parameter_source=(
+        "Uses the same fixed global operating point directly. This isolated efficiency profile does "
+        "not load or require a calibration artifact."
     ),
     parameters=dict(REBUTTAL_SEMANTIC_PROFILE.parameters),
     ablation_parameters={
@@ -109,9 +109,9 @@ SEMANTIC_RESEARCH_PROFILE = _profile(
         "Research-only replay-attribution path with zero-extra-call probe-guided semantic projection; "
         "no attack-template regex, lexical provenance gate, authorization gate, or fail-closed rule"
     ),
-    calibration_source=(
-        "AgentDojo development/benign traces only. This profile isolates replay attribution and "
-        "probe-guided purification; it is not a deployment policy."
+    parameter_source=(
+        "Fixed research operating point. This profile isolates replay attribution and probe-guided "
+        "purification; it is not a deployment policy."
     ),
     parameters={
         "window_size": 3,
@@ -120,10 +120,10 @@ SEMANTIC_RESEARCH_PROFILE = _profile(
         "B": 0,
         "alpha": 0.05,
         "p0_suff": 0.20,
-        "delta_min": 0.0,
+        "delta_l": 0.0,
+        "delta_m": 0.0,
         "suff_min": 0.0,
-        "cusum_k": 0.10,
-        "cusum_h": 0.50,
+        "gamma": 0.25,
     },
     ablation_parameters={
         "use_causal_decision": True,
@@ -198,7 +198,7 @@ def profile_manifest(profile: AgentSentryProfile) -> dict[str, Any]:
     return {
         "name": profile.name,
         "scope": profile.scope,
-        "calibration_source": profile.calibration_source,
+        "parameter_source": profile.parameter_source,
         "parameters": dict(profile.parameters),
         "ablation_parameters": dict(profile.ablation_parameters),
     }

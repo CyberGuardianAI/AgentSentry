@@ -61,6 +61,8 @@ A recommended structure (adapt as needed):
 ├── scripts/                        # Entry points and helpers to run benchmarks and reproduce analyses
 ├── visualization/                  # Plotting and figure-generation scripts/notebooks for paper-ready visuals
 ├── pi_detector.py                  # Main detection module (AgentSentry inference-time diagnostics + gating)
+├── agentsentry_profiles.py         # Named fixed operating points used by the released experiments
+├── agentsentry_integration.py      # Minimal AgentDojo construction and environment overrides
 └── README.md                       # Project overview, reproduction instructions, and artifact pointers
 ```
 ---
@@ -78,71 +80,42 @@ cd agentdojo
 
 
 
-### Step 1: Add the interface
+### Step 1: Add the released mechanism files
 
-In `agentdojo/src/agentdojo/agent_pipeline/agent_pipeline.py`, add the interface of agentsentry.
+Copy `pi_detector.py`, `agentsentry_profiles.py`, and
+`agentsentry_integration.py` into
+`agentdojo/src/agentdojo/agent_pipeline/`.
+
+The released `rebuttal-semantic` profile is the fixed operating point used by
+the current experiments. Its short-window sequential OLS parameters are
+`window_size=3`, `delta_l=0`, `delta_m=0`, and `gamma=0.25`. These values are
+fixed experimental decision parameters; they were not fitted from a
+calibration dataset, and runtime execution does not load a calibration file.
+
+### Step 2: Register AgentSentry in AgentDojo
+
+Add `agentsentry` to the available defense names, then construct the component
+in `Pipeline.from_config` using the released integration helper:
+
 ```python
-from agentdojo.agent_pipeline.pi_detector import agentsentry
+from agentdojo.agent_pipeline.agentsentry_integration import build_agentsentry
 
 ...
 
-DEFENSES = [
-    "tool_filter",
-    "transformers_pi_detector",
-    "spotlighting_with_delimiting",
-    "repeat_user_prompt",
-     "melon",
-     "melon_aug",
-     "taskshiled",
-    "agentsentry",
-]
+if (config.defense or "").lower().startswith("agentsentry"):
+    tools_loop = ToolsExecutionLoop(
+        [
+            ToolsExecutor(),
+            build_agentsentry(llm, profile_name="rebuttal-semantic"),
+        ]
+    )
+    pipeline = cls([system_message_component, init_query_component, llm, tools_loop])
+    pipeline.name = f"{llm_name}-{config.defense}"
+    return pipeline
 ```
 
-In `def from_config` function, add the agentsentry detector (similar to `tool_filter` and other defenses).
-```python
-
-        if config.defense.startswith("Agentsentry"):
-            ab = ablation_from_defense_name(config.defense)
-
-
-            tools_loop = ToolsExecutionLoop(
-                [
-                    ToolsExecutor(),
-                    Agentsentry(
-                        llm,
-                        window_size=3,
-                        lag=1,
-                        K=1,
-                        B=0,
-                        alpha=0.1,
-                        tau_ace=0.2,
-                        tau_ie=0.5,
-                        gamma=0.6,
-                        action_sim_threshold=0.6,
-                        paper_mode=True,
-                        ablation=ab,
-                    ),
-                ]
-            )
-            print("[PIPELINE] defense=", config.defense, "ablation=", ab)
-
-            pipeline = cls([system_message_component, init_query_component, llm, tools_loop])
-            pipeline.name = f"{llm_name}-{config.defense}"
-            return pipeline
-
-```
-
-## Step 2: Add the agentsentry detector
-
-Please copy the entire `pi_detector.py` to `agentdojo/src/agentdojo/agent_pipeline/pi_detector.py`. Rememeber to fill in the api key for the OpenAI model.
-Configure the OpenAI API credentials (PowerShell):
-$env:OPENAI_API_KEY="sk-xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
-$env:OPENAI_BASE_URL="https:"
-
-Modifications:
-
-1. In `class PromptInjectionDetector`, the `query` function is modified by adding the `is_injection` argument in the `extra_args` dictionary. This is used for stopping the agent's execution when an attack is detected.
-2. The `class agentsentry` is added.
+Configure the model API credentials through the environment used by your
+AgentDojo model adapter. Do not place API keys in any repository file.
 
 ## Run the experiments
 The instructions are the same as in [agentdojo](https://github.com/ethz-spylab/agentdojo).

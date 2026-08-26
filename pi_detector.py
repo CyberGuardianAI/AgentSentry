@@ -1065,8 +1065,8 @@ class AblationConfig:
     # Overhead instrumentation (per-boundary replay/LLM-call/token accounting).
     record_overhead: bool = True
 
-    # Auditable held-out calibration provenance. These fields are populated by
-    # build_agentsentry_kwargs when AGENTSENTRY_CALIBRATION_FILE is supplied.
+    # Legacy trace-schema fields retained for compatibility with archived logs.
+    # The released fixed-parameter runtime leaves them unset.
     calibration_artifact_path: str | None = None
     calibration_artifact_sha256: str | None = None
     calibration_runtime: str | None = None
