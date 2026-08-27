@@ -41,9 +41,9 @@ Large language model (LLM) agents increasingly rely on external tools and retrie
 Injected instructions can survive processing and become **action-dominant**, causing **unauthorized tool invocations** and **data exfiltration** through legitimate APIs.
 
 AgentSentry mitigates this by:
-1. diagnosing **boundary-local causal influence** (counterfactual shadow runs), then  
-2. applying **causally gated purification** + **minimal action revision** for safe continuation.
 
+1. diagnosing **boundary-local mediator influence** through counterfactual shadow runs, and aggregating the resulting scores across **adjacent boundaries**;
+2. applying **attribution-gated purification** + **minimal action revision** for safe continuation.
 ---
 
 ## 📦 Repository Layout
