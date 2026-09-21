@@ -1,6 +1,6 @@
-{
-  "package_name": "agentsentry_final_runtime_clean_anonymous",
-  "scope": "AgentSentry final runtime source package with Slack and Travel verification artifacts",
+﻿{
+  "package_name": "agentsentry_released_artifact",
+  "scope": "AgentSentry released runtime, preserved benchmark comparison traces, final Qwen3-Max verification runs, and main-table result exports",
   "python": ">=3.11",
   "profile": {
     "name": "released-ols",
@@ -10,40 +10,45 @@
     "gamma": 0.25,
     "replay_budget": 1
   },
-  "included": [
-    "src/agentdojo/agent_pipeline/pi_detector.py",
-    "src/agentdojo/agent_pipeline/agentsentry_profiles.py",
-    "src/agentdojo/agent_pipeline/agentsentry_calibration.py",
-    "src/agentdojo/agent_pipeline/tool_execution.py",
-    "src/agentdojo/agent_pipeline/base_pipeline_element.py",
-    "src/agentdojo/agent_pipeline/errors.py",
-    "src/agentdojo/agent_pipeline/llms/google_llm.py",
-    "src/agentdojo/functions_runtime.py",
-    "src/agentdojo/types.py",
-    "src/agentdojo/logging.py",
-    "src/agentdojo/ast_utils.py",
-    "results/slack_important_qwen3max",
-    "results/travel_tool_knowledge_qwen3max",
-    "pyproject.toml",
-    "README.md"
+  "runtime_files": [
+    "pi_detector.py",
+    "agentsentry_profiles.py",
+    "agentsentry_integration.py",
+    "google_llm.py"
   ],
-  "packaged_results": {
-    "slack_important_qwen3max": {
+  "result_exports": [
+    "results/main_table_results.py",
+    "results/main_table_results.csv",
+    "results/main_table_results.json"
+  ],
+  "packaged_runs": {
+    "qwen3-max-2025-09-23-agentsentry-slack-important": {
+      "path": "runs/qwen3-max-2025-09-23-agentsentry-slack-important",
       "completed_cases": 105,
       "attack_successes": 0,
-      "summary": "results/slack_important_qwen3max/summary.json"
+      "summary": "runs/qwen3-max-2025-09-23-agentsentry-slack-important/summary.json"
     },
-    "travel_tool_knowledge_qwen3max": {
+    "qwen3-max-2025-09-23-agentsentry-travel-tool-knowledge": {
+      "path": "runs/qwen3-max-2025-09-23-agentsentry-travel-tool-knowledge",
       "completed_cases": 140,
       "attack_successes": 0,
-      "summary": "results/travel_tool_knowledge_qwen3max/summary.dedup.json"
+      "summary": "runs/qwen3-max-2025-09-23-agentsentry-travel-tool-knowledge/summary.dedup.json"
     }
   },
+  "preserved_comparison_runs": [
+    "runs/qwen3-max-2025-09-23-agentarmor",
+    "runs/qwen3-max-2025-09-23-agentsentry",
+    "runs/qwen3-max-2025-09-23-attriguard",
+    "runs/qwen3-max-2025-09-23-causalarmor",
+    "runs/qwen3-max-2025-09-23-ipiguard",
+    "runs/qwen3-max-2025-09-23-provseek-adapted",
+    "runs/qwen3-max-2025-09-23-traceaegis"
+  ],
   "not_included": [
     "API keys or environment files",
     "local machine paths",
     "notebooks and paper drafts",
-    "unrelated defenses",
-    "unrelated experiment directories"
+    "obsolete AgentSentry ablation-result directories",
+    "old GPT-3.5/GPT-4o AgentSentry run directories"
   ]
 }

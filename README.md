@@ -89,30 +89,33 @@ AgentSentry mitigates this by:
 
 ```text
 .
-├── assets/                         # README figures
-├── configs/                        # Model and runner configuration helpers
-├── evaluation/                     # Metric aggregation utilities
-├── results/
-│   ├── agentdojo/                  # Aggregate table-generation artifacts
-│   ├── slack_important_qwen3max/    # Packaged final AgentSentry run
-│   └── travel_tool_knowledge_qwen3max/
-├── runs/                           # Preserved AgentDojo traces for original main/baseline experiments
-├── scripts/                        # Benchmark launch helpers
-├── visualization/                  # Plotting scripts for paper figures
-├── pi_detector.py                  # AgentSentry runtime: four scores, OLS, delayed match, repair
-├── agentsentry_profiles.py         # Released operating profile
-├── agentsentry_integration.py      # Minimal AgentDojo construction helper
-├── google_llm.py                   # Minimal AgentDojo host constant used by the runner
-├── agentsentry_batch_results.zip   # OpenClaw batch-level artifacts
-├── agentsentry_manual_evaluation_cases.zip
-├── PACKAGE_MANIFEST.json
-└── README.md
+??? assets/                         # README figures
+??? configs/                        # Model and runner configuration helpers
+??? evaluation/                     # Metric aggregation utilities
+??? results/                        # Main-table result data and export script
+?   ??? main_table_results.py
+?   ??? main_table_results.csv
+?   ??? main_table_results.json
+??? runs/                           # Preserved AgentDojo traces and final AgentSentry runs
+?   ??? qwen3-max-2025-09-23-agentsentry-slack-important/
+?   ??? qwen3-max-2025-09-23-agentsentry-travel-tool-knowledge/
+?   ??? qwen3-max-2025-09-23-*/     # Other preserved comparison traces
+??? scripts/                        # Benchmark launch helpers
+??? visualization/                  # Plotting scripts for paper figures
+??? pi_detector.py                  # AgentSentry runtime: four scores, OLS, delayed match, repair
+??? agentsentry_profiles.py         # Released operating profile
+??? agentsentry_integration.py      # Minimal AgentDojo construction helper
+??? google_llm.py                   # Minimal AgentDojo host constant used by the runner
+??? agentsentry_batch_results.zip   # OpenClaw batch-level artifacts
+??? agentsentry_manual_evaluation_cases.zip
+??? PACKAGE_MANIFEST.json
+??? README.md
 ```
 
 The repository preserves the original benchmark utilities and non-ablation
 comparison traces, while replacing the AgentSentry runtime with the final
-released implementation and adding the two packaged final AgentSentry
-verification runs. It does not include API keys, local machine paths, notebooks,
+released implementation and moving the two packaged final AgentSentry
+verification runs under `runs/`. It does not include API keys, local machine paths, notebooks,
 paper drafts, or obsolete AgentSentry ablation-result directories.
 
 ---
@@ -210,14 +213,14 @@ python -m agentdojo.scripts.benchmark \
   --defense AgentSentry \
   --attack important_instructions \
   -s slack \
-  --logdir runs/slack_important_qwen3max \
+  --logdir runs/qwen3-max-2025-09-23-agentsentry-slack-important \
   -f
 ```
 
 Packaged result:
 
 ```text
-results/slack_important_qwen3max/summary.json
+runs/qwen3-max-2025-09-23-agentsentry-slack-important/summary.json
 completed_cases = 105
 attack_successes = 0
 empirical_asr = 0.0
@@ -231,14 +234,14 @@ python -m agentdojo.scripts.benchmark \
   --defense AgentSentry \
   --attack tool_knowledge \
   -s travel \
-  --logdir runs/travel_tool_knowledge_qwen3max \
+  --logdir runs/qwen3-max-2025-09-23-agentsentry-travel-tool-knowledge \
   -f
 ```
 
 Packaged result:
 
 ```text
-results/travel_tool_knowledge_qwen3max/summary.dedup.json
+runs/qwen3-max-2025-09-23-agentsentry-travel-tool-knowledge/summary.dedup.json
 completed_ok = 140
 unique_cases = 140
 attack_successes = 0
@@ -257,6 +260,14 @@ To check the released files before running full benchmarks:
 
 ```bash
 python -m py_compile pi_detector.py agentsentry_profiles.py agentsentry_integration.py google_llm.py
+```
+
+The main aggregate table can be exported from `results/main_table_results.py`:
+
+```bash
+python results/main_table_results.py --format markdown
+python results/main_table_results.py --format csv --output results/main_table_results.csv
+python results/main_table_results.py --format json --output results/main_table_results.json
 ```
 
 ---
