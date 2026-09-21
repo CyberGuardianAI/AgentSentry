@@ -37,21 +37,23 @@ content. Consequently, they tend to rely on conservative blocking, termination,
 or broad filtering, sacrificing utility for security.
 
 We propose **AgentSentry**, an inference-time defense that operationalizes
-temporal causal diagnostics through boundary-local counterfactual
-re-executions at tool-return boundaries. It substitutes the mediator under a
-restored snapshot, computes replay-based attribution scores, aggregates
-structural evidence across adjacent boundaries with a short-window OLS rule,
-and repairs mediator-sensitive continuations through localized purification.
-When a proposal is attributed to untrusted mediator content, AgentSentry
-purifies the implicated content while preserving task-relevant evidence and
-resumes execution from the repaired state.
+temporal causal diagnostics through boundary-local counterfactual re-executions
+at tool-return boundaries. It summarizes the resulting controlled contrasts as
+replay-based attribution scores. When a risky proposal is mediator-sensitive,
+AgentSentry purifies the implicated mediator content, removes
+instruction-bearing control signals while preserving task-relevant evidence,
+and resumes execution from the repaired state.
 
 We evaluate AgentSentry on AgentDojo across four task suites, three IPI attack
 families, and three black-box LLM backends. AgentSentry records zero observed
-successful attacks in the evaluated aggregate setting and improves the
-security--utility trade-off relative to inference-time baselines. Additional
-evaluations examine long-horizon and adaptive attacks, imperfect purification,
-runtime overhead, and an OpenClaw engineering case study.
+successful attacks in the evaluated cases (\(\mathrm{ASR}=0\%\)) and achieves
+an average *Utility Under Attack (UA)* of \(76.10\%\). Compared with the
+strongest evaluated baseline, AgentSentry improves average UA by
+\(1.84\)--\(7.60\) percentage points, with benign FPRs of
+\(2.06\%\)--\(5.15\%\). Additional evaluations examine long-horizon and
+adaptive attacks, imperfect purification, runtime overhead, and an OpenClaw
+engineering case study in a local-agent runtime. The code for AgentSentry is
+available at <https://anonymous.4open.science/r/AgentSentry>.
 
 ---
 
@@ -89,27 +91,27 @@ AgentSentry mitigates this by:
 
 ```text
 .
-??? assets/                         # README figures
-??? configs/                        # Model and runner configuration helpers
-??? evaluation/                     # Metric aggregation utilities
-??? results/                        # Main-table result data and export script
-?   ??? main_table_results.py
-?   ??? main_table_results.csv
-?   ??? main_table_results.json
-??? runs/                           # Preserved AgentDojo traces and final AgentSentry runs
-?   ??? qwen3-max-2025-09-23-agentsentry-slack-important/
-?   ??? qwen3-max-2025-09-23-agentsentry-travel-tool-knowledge/
-?   ??? qwen3-max-2025-09-23-*/     # Other preserved comparison traces
-??? scripts/                        # Benchmark launch helpers
-??? visualization/                  # Plotting scripts for paper figures
-??? pi_detector.py                  # AgentSentry runtime: four scores, OLS, delayed match, repair
-??? agentsentry_profiles.py         # Released operating profile
-??? agentsentry_integration.py      # Minimal AgentDojo construction helper
-??? google_llm.py                   # Minimal AgentDojo host constant used by the runner
-??? agentsentry_batch_results.zip   # OpenClaw batch-level artifacts
-??? agentsentry_manual_evaluation_cases.zip
-??? PACKAGE_MANIFEST.json
-??? README.md
+|-- assets/                         # README figures
+|-- configs/                        # Model and runner configuration helpers
+|-- evaluation/                     # Metric aggregation utilities
+|-- results/                        # Main-table result data and export script
+|   |-- main_table_results.py
+|   |-- main_table_results.csv
+|   `-- main_table_results.json
+|-- runs/                           # Preserved AgentDojo traces and final AgentSentry runs
+|   |-- qwen3-max-2025-09-23-agentsentry-slack-important/
+|   |-- qwen3-max-2025-09-23-agentsentry-travel-tool-knowledge/
+|   `-- qwen3-max-2025-09-23-*/     # Other preserved comparison traces
+|-- scripts/                        # Benchmark launch helpers
+|-- visualization/                  # Plotting scripts for paper figures
+|-- pi_detector.py                  # AgentSentry runtime: four scores, OLS, delayed match, repair
+|-- agentsentry_profiles.py         # Released operating profile
+|-- agentsentry_integration.py      # Minimal AgentDojo construction helper
+|-- google_llm.py                   # Minimal AgentDojo host constant used by the runner
+|-- agentsentry_batch_results.zip   # OpenClaw batch-level artifacts
+|-- agentsentry_manual_evaluation_cases.zip
+|-- PACKAGE_MANIFEST.json
+`-- README.md
 ```
 
 The repository preserves the original benchmark utilities and non-ablation
