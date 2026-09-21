@@ -35,7 +35,6 @@ defenses can often detect suspicious behavior but do not directly distinguish
 whether a pending action is supported by the user task or influenced by injected
 content. Consequently, they tend to rely on conservative blocking, termination,
 or broad filtering, sacrificing utility for security.
-
 We propose **AgentSentry**, an inference-time defense that operationalizes
 temporal causal diagnostics through boundary-local counterfactual re-executions
 at tool-return boundaries. It summarizes the resulting controlled contrasts as
@@ -43,7 +42,6 @@ replay-based attribution scores. When a risky proposal is mediator-sensitive,
 AgentSentry purifies the implicated mediator content, removes
 instruction-bearing control signals while preserving task-relevant evidence,
 and resumes execution from the repaired state.
-
 We evaluate AgentSentry on AgentDojo across four task suites, three IPI attack
 families, and three black-box LLM backends. AgentSentry records zero observed
 successful attacks in the evaluated cases (\(\mathrm{ASR}=0\%\)) and achieves
@@ -52,8 +50,7 @@ strongest evaluated baseline, AgentSentry improves average UA by
 \(1.84\)--\(7.60\) percentage points, with benign FPRs of
 \(2.06\%\)--\(5.15\%\). Additional evaluations examine long-horizon and
 adaptive attacks, imperfect purification, runtime overhead, and an OpenClaw
-engineering case study in a local-agent runtime. The code for AgentSentry is
-available at <https://anonymous.4open.science/r/AgentSentry>.
+engineering case study in a local-agent runtime.
 
 ---
 
