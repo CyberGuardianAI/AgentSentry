@@ -31,14 +31,16 @@ import matplotlib.pyplot as plt
 #   S^L: user-preserving mediator-purification
 #
 # The first two boundaries show mediator support in the replay audit, but the
-# pending live proposal is not user-preserving projection-sensitive. The third
-# boundary is the first live-policy sensitive boundary and therefore triggers
-# the local attribution gate.
+# pending live proposal is not user-preserving projection-sensitive. Those
+# benign proposals remain user-view anchored after mediator projection, giving
+# S^R = 1 at the first two boundaries. The third boundary is the first
+# live-policy sensitive boundary and therefore triggers the local attribution
+# gate.
 # ---------------------------------------------------------------------------
 B = np.array([1, 2, 3], dtype=float)
 S_U = np.array([1.0, 1.0, 1.0])
 S_M = np.array([1.0, 1.0, 1.0])
-S_R = np.array([0.0, 0.0, 0.0])
+S_R = np.array([1.0, 1.0, 0.0])
 S_L = np.array([0.0, 0.0, 1.0])
 
 DELTA_L = 0.0
@@ -82,6 +84,7 @@ ALARM_B = int(B[np.argmax(TAKEOVER > 0)]) if np.any(TAKEOVER > 0) else int(B[-1]
 
 assert np.array_equal(LOCAL_GATE, np.array([0.0, 0.0, 1.0]))
 assert np.array_equal(TEMPORAL_GATE, np.array([0.0, 0.0, 0.0]))
+assert np.array_equal(S_R, np.array([1.0, 1.0, 0.0]))
 assert ALARM_B == 3
 
 
@@ -127,16 +130,6 @@ def add_alarm(ax: plt.Axes, y: float, text_xy=(-92, 42)) -> None:
         label=rf"takeover alarm $b^\star={ALARM_B}$",
         zorder=7,
     )
-    ax.annotate(
-        rf"local alarm $b^\star={ALARM_B}$",
-        xy=(ALARM_B, y),
-        xytext=text_xy,
-        textcoords="offset points",
-        arrowprops=dict(arrowstyle="->", color="#6f6400", lw=1.2),
-        color="#6f6400",
-        ha="left",
-        va="center",
-    )
 
 
 # ---------------------------------------------------------------------------
@@ -144,7 +137,6 @@ def add_alarm(ax: plt.Axes, y: float, text_xy=(-92, 42)) -> None:
 # ---------------------------------------------------------------------------
 fig, ax = plt.subplots(figsize=(7.8, 3.9), dpi=300)
 setup_axis(ax)
-ax.set_title("Boundary-aligned structural replay attribution", pad=12)
 ax.set_ylabel("Structural score")
 
 ax.step(B, S_U, where="post", linewidth=2.8, color="#4c78a8", label=r"$S_b^U$ (observed-mediator user-view)")
@@ -169,7 +161,6 @@ fig.savefig(OUT_DIR / "agentsentry_u20i6_ols_structural_scores.pdf", bbox_inches
 # ---------------------------------------------------------------------------
 fig, ax = plt.subplots(figsize=(7.8, 3.6), dpi=300)
 setup_axis(ax)
-ax.set_title("AgentSentry takeover decision diagnostics", pad=12)
 ax.set_ylabel("Decision value")
 
 ax.step(B, LOCAL_GATE, where="post", linewidth=2.8, color="#4c78a8", label=r"local gate $L_b$")

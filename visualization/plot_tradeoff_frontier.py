@@ -14,7 +14,7 @@ if (os.name != "nt") and os.environ.get("DISPLAY", "") == "":
 import matplotlib.pyplot as plt
 
 
-# Average UA/ASR values from the final table.
+# Average UA/ASR values used in the paper's final trade-off figure.
 ROWS = [
     ("GPT-4o", "No Defense", 50.40, 26.17),
     ("GPT-4o", "Delimiting", 54.95, 27.27),
@@ -27,6 +27,9 @@ ROWS = [
     ("GPT-4o", "MELON", 30.25, 0.95),
     ("GPT-4o", "MELON-Aug", 45.14, 1.19),
     ("GPT-4o", "Task Shield", 53.13, 4.93),
+    ("GPT-4o", "AgentArmor", 54.16, 0.48),
+    ("GPT-4o", "TraceAegis", 50.66, 1.94),
+    ("GPT-4o", "ProvSEEK", 28.63, 14.10),
     ("GPT-4o", "AgentSentry (ours)", 74.13, 0.00),
     ("GPT-3.5-turbo", "No Defense", 40.18, 38.93),
     ("GPT-3.5-turbo", "Delimiting", 42.00, 39.20),
@@ -39,6 +42,9 @@ ROWS = [
     ("GPT-3.5-turbo", "MELON", 27.79, 1.90),
     ("GPT-3.5-turbo", "MELON-Aug", 37.75, 2.14),
     ("GPT-3.5-turbo", "Task Shield", 36.68, 6.65),
+    ("GPT-3.5-turbo", "AgentArmor", 45.39, 2.14),
+    ("GPT-3.5-turbo", "TraceAegis", 41.63, 2.61),
+    ("GPT-3.5-turbo", "ProvSEEK", 21.94, 17.96),
     ("GPT-3.5-turbo", "AgentSentry (ours)", 71.69, 0.00),
     ("Qwen3-Max", "No Defense", 57.73, 33.22),
     ("Qwen3-Max", "Delimiting", 60.28, 28.14),
@@ -51,6 +57,9 @@ ROWS = [
     ("Qwen3-Max", "MELON", 41.10, 1.67),
     ("Qwen3-Max", "MELON-Aug", 52.77, 1.68),
     ("Qwen3-Max", "Task Shield", 50.31, 5.66),
+    ("Qwen3-Max", "AgentArmor", 49.97, 2.86),
+    ("Qwen3-Max", "TraceAegis", 47.51, 2.82),
+    ("Qwen3-Max", "ProvSEEK", 30.02, 16.97),
     ("Qwen3-Max", "AgentSentry (ours)", 82.49, 0.00),
 ]
 
@@ -68,6 +77,9 @@ ORDER = [
     "MELON",
     "MELON-Aug",
     "Task Shield",
+    "AgentArmor",
+    "TraceAegis",
+    "ProvSEEK",
     "AgentSentry (ours)",
 ]
 
@@ -83,6 +95,9 @@ MARKER = {
     "MELON": "H",
     "MELON-Aug": "8",
     "Task Shield": "*",
+    "AgentArmor": ">",
+    "TraceAegis": "<",
+    "ProvSEEK": "d",
     "AgentSentry (ours)": "X",
 }
 
@@ -98,6 +113,9 @@ COLOR = {
     "MELON": "#9c755f",
     "MELON-Aug": "#e377c2",
     "Task Shield": "#7f7f7f",
+    "AgentArmor": "#1f9e89",
+    "TraceAegis": "#bcbd22",
+    "ProvSEEK": "#6f4e9c",
     "AgentSentry (ours)": "#d8c400",
 }
 
@@ -119,7 +137,7 @@ plt.rcParams.update(
 MODELS = ["GPT-4o", "GPT-3.5-turbo", "Qwen3-Max"]
 OUT_DIR = Path(__file__).resolve().parent
 
-fig, axes = plt.subplots(1, 3, figsize=(11.2, 3.15), sharex=True, sharey=True, dpi=300)
+fig, axes = plt.subplots(1, 3, figsize=(12.2, 3.2), sharex=True, sharey=True, dpi=300)
 legend_handles = {}
 
 for ax, model in zip(axes, MODELS):
@@ -139,7 +157,7 @@ for ax, model in zip(axes, MODELS):
         point = ax.scatter(
             asr,
             ua,
-            s=120 if is_ours else 62,
+            s=142 if is_ours else 82,
             marker=MARKER[defense],
             color=COLOR[defense],
             edgecolor="#6f6400" if is_ours else "white",
@@ -153,18 +171,21 @@ for ax, model in zip(axes, MODELS):
             ax.annotate(
                 "AgentSentry",
                 (asr, ua),
-                xytext=(8, 7),
+                xytext=(7, -3) if model == "Qwen3-Max" else (7, 9),
                 textcoords="offset points",
                 ha="left",
-                va="bottom",
-                fontsize=10.2,
-                weight="bold",
+                va="center" if model == "Qwen3-Max" else "bottom",
+                fontsize=10.5,
+                weight="semibold",
+                color="#4a4200",
             )
 
     ax.set_title(model, pad=5)
     ax.grid(True, alpha=0.25, linewidth=0.75)
-    ax.set_xlim(-1.5, 42)
-    ax.set_ylim(0, 90)
+    ax.set_xlim(-1.0, 42)
+    ax.set_ylim(0, 85)
+    ax.set_xticks([0, 10, 20, 30, 40])
+    ax.set_yticks([0, 20, 40, 60, 80])
     ax.tick_params(axis="both", pad=1)
 
 fig.supxlabel("Attack Success Rate (ASR) (%)", y=0.035)
@@ -176,14 +197,17 @@ fig.legend(
     handles,
     labels,
     loc="center left",
-    bbox_to_anchor=(0.885, 0.5),
+    bbox_to_anchor=(0.765, 0.5),
+    ncol=2,
     frameon=False,
     borderaxespad=0.0,
-    handletextpad=0.45,
-    labelspacing=0.5,
+    handletextpad=0.28,
+    labelspacing=0.42,
+    columnspacing=0.75,
+    markerscale=0.78,
 )
 
-fig.subplots_adjust(left=0.075, right=0.865, bottom=0.23, top=0.86, wspace=0.12)
+fig.subplots_adjust(left=0.067, right=0.750, bottom=0.21, top=0.88, wspace=0.12)
 fig.savefig(OUT_DIR / "tradeoff_3panel_agentsentry_final.png", bbox_inches="tight")
 fig.savefig(OUT_DIR / "tradeoff_3panel_agentsentry_final.pdf", bbox_inches="tight")
 
