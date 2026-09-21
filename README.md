@@ -1,149 +1,112 @@
-<!-- =======================
- AgentSentry README (pretty)
-======================== -->
+# AgentSentry
 
-<p align="center">
-  <img src="assets/logo.png" alt="AgentSentry logo" width="300">
-</p>
+AgentSentry is an inference-time defense for indirect prompt injection in tool-augmented LLM agents. The released artifact provides the final runtime implementation used in the NDSS version, together with two packaged verification result sets.
 
-<p align="center">
-  <b>Agentsentry: Mitigating Indirect Prompt Injection in LLM Agents via Temporal Causal Diagnostics and Context Purification</b>
-</p>
-
-<p align="center">
-  <a href="https://anonymous.4open.science/r/AgentSentry"><img alt="Code" src="https://img.shields.io/badge/Code-anonymous.4open.science-4c1?style=flat-square"></a>
-  <img alt="Defense" src="https://img.shields.io/badge/Topic-Indirect%20Prompt%20Injection-orange?style=flat-square">
-  <img alt="Agent" src="https://img.shields.io/badge/Setting-Tool--Augmented%20LLM%20Agents-7b2cbf?style=flat-square">
-  <img alt="Benchmark" src="https://img.shields.io/badge/Benchmark-AgentDojo-black?style=flat-square">
-</p>
-
----
-
-## 🧾 Abstract
-
-## Abstract
-
-Tool-augmented large language model (LLM) agents aggregate dialogue history, tool outputs, and retrieved content into an accumulated runtime state to complete multi-step tasks. This execution model exposes agents to indirect prompt injection (IPI) attacks, where attacker-controlled instructions embedded in external artifacts are incorporated into the agent state and later influence tool use. Multi-turn IPI is especially challenging because injected content can persist across intermediate steps and trigger unauthorized state-changing actions only after user intent and untrusted content have been merged into the same context. This creates a *source-attribution problem*: once user-goal signals and untrusted tool-mediated content are merged, existing inference-time defenses can often detect suspicious behavior but do not directly distinguish whether a pending action is supported by the user task or influenced by injected content. Consequently, they tend to rely on conservative blocking, termination, or broad filtering, sacrificing utility for security.
-We propose **AgentSentry**, an inference-time defense that operationalizes temporal causal diagnostics through boundary-local counterfactual re-executions at tool-return boundaries. It substitutes the mediator under a restored snapshot and records whether the pending proposal survives, aggregating the resulting attribution scores across adjacent boundaries. When a proposal is mediator-sensitive, AgentSentry purifies the implicated mediator content while preserving task-relevant evidence and resumes execution from the repaired state.
-We evaluate AgentSentry on AgentDojo across four task suites, three IPI attack families, and three black-box LLM backends. AgentSentry records zero observed successful attacks in the evaluated cases (ASR = 0%) and achieves an average *Utility Under Attack (UA)* of 76.10%. Compared with the strongest evaluated baseline, AgentSentry improves average UA by 1.84–7.60 percentage points, with benign FPRs of 2.06%–5.15%. Additional evaluations examine long-horizon and adaptive attacks, imperfect purification, runtime overhead, and an OpenClaw engineering case study.
-
----
-<p align="center">
-  <img src="assets/pipeline.png" alt="AgentSentry pipeline for defending against multi-turn IPI" width="980"/>
-</p>
-
-<p align="center">
-  <em><b>AgentSentry pipeline for defending against multi-turn IPI.</b>
-</p>
-
----
-
-
-## 🧠 Threat Model
-
-**Untrusted content** (emails, documents, webpages) enters the agent via **tools/retrieval/memory**.  
-Injected instructions can survive processing and become **action-dominant**, causing **unauthorized tool invocations** and **data exfiltration** through legitimate APIs.
-
-AgentSentry mitigates this by:
-
-1. diagnosing **boundary-local mediator influence** through counterfactual shadow runs, and aggregating the resulting scores across **adjacent boundaries**;
-2. applying **attribution-gated purification** + **minimal action revision** for safe continuation.
----
-
-## 📦 Repository Layout
-
-A recommended structure (adapt as needed):
+## Contents
 
 ```text
-.
-├── assets/                         # Figures and visual assets used in the README (e.g., pipeline.png)
-├── configs/                        # Experiment configuration files (suite/model/attack/defense settings)
-├── evaluation/                     # Evaluation utilities: metric aggregation and reporting (e.g., ASR/UA/CU/FPR)
-├── results/
-│   └── agentdojo/                  # Final benchmark outputs organized for paper tables (AgentDojo results)
-├── runs/                           # Intermediate run artifacts (per-run logs, cached traces, debugging dumps)
-├── scripts/                        # Entry points and helpers to run benchmarks and reproduce analyses
-├── visualization/                  # Plotting and figure-generation scripts/notebooks for paper-ready visuals
-├── pi_detector.py                  # Main detection module (AgentSentry inference-time diagnostics + gating)
-├── agentsentry_profiles.py         # Named fixed operating points used by the released experiments
-├── agentsentry_integration.py      # Minimal AgentDojo construction and environment overrides
-└── README.md                       # Project overview, reproduction instructions, and artifact pointers
-```
----
-
-## ⚙️ Installation
-
-AgentSentry is evaluated on the **AgentDojo** benchmark.
-
-First, clone the [agentdojo](https://github.com/ethz-spylab/agentdojo) repository.
-
-```bash
-git clone https://github.com/ethz-spylab/agentdojo
-cd agentdojo
+pi_detector.py                 # AgentSentry detector and repaired-continuation runtime
+agentsentry_profiles.py        # Released OLS operating profile
+agentsentry_integration.py     # Minimal AgentDojo construction helper
+google_llm.py                  # Minimal AgentDojo host constant
+results/slack_important_qwen3max/
+results/travel_tool_knowledge_qwen3max/
+PACKAGE_MANIFEST.json
 ```
 
+The packaged results contain only AgentSentry runs for the final released configuration.
 
+## Released Profile
 
-### Step 1: Add the released mechanism files
+The default profile is `released-ols`:
 
-Copy `pi_detector.py`, `agentsentry_profiles.py`, and
-`agentsentry_integration.py` into
-`agentdojo/src/agentdojo/agent_pipeline/`.
+```text
+window_size = 3
+delta_l = 0
+delta_m = 0
+gamma = 0.25
+K = 1
+```
 
-The released `rebuttal-semantic` profile is the fixed operating point used by
-the current experiments. Its short-window sequential OLS parameters are
-`window_size=3`, `delta_l=0`, `delta_m=0`, and `gamma=0.25`. These values are
-fixed experimental decision parameters; they were not fitted from a
-calibration dataset, and runtime execution does not load a calibration file.
+It uses four replay attribution scores, OLS temporal aggregation, delayed matching, probe-guided purification, revised continuation, semantic authorization, and effect-support validation.
 
-### Step 2: Register AgentSentry in AgentDojo
+## Using AgentSentry with AgentDojo
 
-Add `agentsentry` to the available defense names, then construct the component
-in `Pipeline.from_config` using the released integration helper:
+Copy the following files into `agentdojo/agent_pipeline/` in an AgentDojo checkout:
+
+```text
+pi_detector.py
+agentsentry_profiles.py
+agentsentry_integration.py
+google_llm.py
+```
+
+Then add AgentSentry to the runner's defense registry and construct it with:
 
 ```python
 from agentdojo.agent_pipeline.agentsentry_integration import build_agentsentry
 
-...
-
-if (config.defense or "").lower().startswith("agentsentry"):
-    tools_loop = ToolsExecutionLoop(
-        [
-            ToolsExecutor(),
-            build_agentsentry(llm, profile_name="rebuttal-semantic"),
-        ]
-    )
-    pipeline = cls([system_message_component, init_query_component, llm, tools_loop])
-    pipeline.name = f"{llm_name}-{config.defense}"
-    return pipeline
+pipeline = [
+    build_agentsentry(llm, profile_name="released-ols"),
+    # existing tool-execution and model components
+]
 ```
 
-Configure the model API credentials through the environment used by your
-AgentDojo model adapter. Do not place API keys in any repository file.
+Configure credentials through environment variables used by your model adapter. Do not store API keys in repository files.
 
-## Run the experiments
-The instructions are the same as in [agentdojo](https://github.com/ethz-spylab/agentdojo).
+Example environment variables:
 
-Here is an example command to run the experiments:
 ```bash
-python -m agentdojo.scripts.benchmark --model QWEN3_MAX_2025_09_23 --defense Agentsentry --attack important_instructions -s workspace
+export OPENAI_API_KEY=<your_api_key>
+export OPENAI_BASE_URL=<openai_compatible_base_url>
+export AGENTSENTRY_PROFILE=released-ols
+export AGENTSENTRY_DEBUG_PRINT=0
+export PYTHONUTF8=1
+export PYTHONIOENCODING=utf-8
 ```
 
-## Agentsentry Implementation in Other Repositories
+Example AgentDojo invocation after registering the defense:
 
-In `pi_detector.py`, we provide the implementation of agentsentry. You can use it in your own projects.
+```bash
+python -m agentdojo.scripts.benchmark \
+  --model QWEN3_MAX_2025_09_23 \
+  --defense AgentSentry \
+  --agentsentry-profile released-ols \
+  --attack important_instructions \
+  -s slack \
+  --logdir runs/slack_important_qwen3max \
+  -f
+```
 
-## OpenClaw Experimental Artifacts
+For a single task--injection pair, add `-ut <USER_TASK_ID> -it <INJECTION_TASK_ID>`.
 
-We provide two normalized artifact archives derived from our OpenClaw evaluation.
+## Packaged Results
 
-- `agentsentry_batch_results.zip` contains the batch-level experimental outputs generated on OpenClaw.
+```text
+results/slack_important_qwen3max/summary.json
+results/slack_important_qwen3max/rows.jsonl
+results/slack_important_qwen3max/raw_traces/
+results/slack_important_qwen3max/collected_result.md
+results/travel_tool_knowledge_qwen3max/summary.json
+results/travel_tool_knowledge_qwen3max/summary.dedup.json
+results/travel_tool_knowledge_qwen3max/rows.jsonl
+results/travel_tool_knowledge_qwen3max/raw_traces/
+results/travel_tool_knowledge_qwen3max/logs/
+```
 
-- `agentsentry_manual_evaluation_cases.zip` contains manually curated OpenClaw evaluation cases for qualitative inspection.
+Summary counts:
 
-Together, these artifacts summarize the OpenClaw evaluation results and provide supporting materials for reproducibility and manual verification.
+```text
+Slack / Important Instructions / Qwen3-Max: completed 105/105, attack_success 0/105.
+Travel / Tool Knowledge / Qwen3-Max: completed 140/140, attack_success 0/140.
+```
 
-## Acknowledgments
+## Validation
 
-We thank the authors of [agentdojo](https://github.com/ethz-spylab/agentdojo) for providing the environment for the experiments.
+A quick syntax check can be run with:
 
+```bash
+python -m py_compile pi_detector.py agentsentry_profiles.py agentsentry_integration.py google_llm.py
+```
+
+The artifact contains no API keys, local machine paths, unrelated defenses, notebooks, paper drafts, or unrelated experiment directories.

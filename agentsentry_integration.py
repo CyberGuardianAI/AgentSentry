@@ -1,22 +1,16 @@
-"""Minimal AgentSentry integration for the released fixed OLS operating point.
-
-Copy this file together with ``pi_detector.py`` and
-``agentsentry_profiles.py`` into ``agentdojo/agent_pipeline``.  The runtime
-uses the fixed named profile directly; no calibration dataset or calibration
-artifact is loaded.
-"""
+"""AgentSentry integration helper for AgentDojo-style runners."""
 
 from __future__ import annotations
 
 import os
 from typing import Any
 
-try:  # Package installation.
+try:
     from .agentsentry_profiles import get_agentsentry_profile
-    from .pi_detector import AblationConfig, AgentSentry
-except ImportError:  # Standalone artifact inspection.
+    from .pi_detector import AgentSentry, AgentSentryConfig
+except ImportError:
     from agentsentry_profiles import get_agentsentry_profile
-    from pi_detector import AblationConfig, AgentSentry
+    from pi_detector import AgentSentry, AgentSentryConfig
 
 
 def _env_int(name: str, default: int) -> int:
@@ -39,38 +33,26 @@ def _env_bool(name: str, default: bool) -> bool:
 def build_agentsentry_kwargs(
     profile_name: str | None = None,
     *,
-    ablation: AblationConfig | None = None,
+    config: AgentSentryConfig | None = None,
 ) -> dict[str, Any]:
-    """Build the released AgentSentry configuration without data calibration."""
+    """Build AgentSentry keyword arguments for the released OLS profile."""
 
     profile = get_agentsentry_profile(
-        profile_name or os.getenv("AGENTSENTRY_PROFILE") or "rebuttal-semantic"
+        profile_name or os.getenv("AGENTSENTRY_PROFILE") or "released-ols"
     )
     parameters = dict(profile.parameters)
-    ablation = ablation or AblationConfig()
+    config_params = dict(profile.config_parameters)
+    if config is None:
+        config = AgentSentryConfig(**config_params)
+    else:
+        for field, value in config_params.items():
+            setattr(config, field, value)
 
-    for field, value in profile.ablation_parameters.items():
-        setattr(ablation, field, value)
-
-    ablation.projection_granularity = os.getenv(
+    config.debug_print = _env_bool("AGENTSENTRY_DEBUG_PRINT", config.debug_print)
+    config.projection_granularity = os.getenv(
         "AGENTSENTRY_PROJECTION_GRANULARITY",
-        ablation.projection_granularity,
+        config.projection_granularity,
     ).strip().lower().replace("-", "_")
-    if ablation.projection_granularity not in {
-        "enclosing_block",
-        "exact_span",
-        "partial_span",
-        "identity",
-    }:
-        raise ValueError(
-            "AGENTSENTRY_PROJECTION_GRANULARITY must be enclosing_block, "
-            "exact_span, partial_span, or identity"
-        )
-
-    ablation.sanitization_only = _env_bool(
-        "AGENTSENTRY_SANITIZATION_ONLY", ablation.sanitization_only
-    )
-    ablation.debug_print = _env_bool("AGENTSENTRY_DEBUG_PRINT", False)
 
     return {
         "window_size": _env_int("AGENTSENTRY_WINDOW_SIZE", parameters["window_size"]),
@@ -84,11 +66,11 @@ def build_agentsentry_kwargs(
         "suff_min": _env_float("AGENTSENTRY_SUFF_MIN", parameters["suff_min"]),
         "gamma": _env_float("AGENTSENTRY_GAMMA", parameters["gamma"]),
         "paper_mode": _env_bool("AGENTSENTRY_PAPER_MODE", True),
-        "ablation": ablation,
+        "config": config,
     }
 
 
 def build_agentsentry(llm: Any, profile_name: str | None = None) -> AgentSentry:
-    """Instantiate AgentSentry using the named fixed operating point."""
+    """Instantiate AgentSentry using the released OLS profile."""
 
     return AgentSentry(llm, **build_agentsentry_kwargs(profile_name))
