@@ -38,12 +38,11 @@ or broad filtering, sacrificing utility for security.
 
 We propose **AgentSentry**, an inference-time defense that operationalizes
 temporal causal diagnostics through boundary-local counterfactual re-executions
-at tool-return boundaries. It substitutes the mediator under a restored
-snapshot and records whether the pending proposal survives, aggregating the
-resulting attribution scores across adjacent boundaries. When a proposal is
-mediator-sensitive, AgentSentry purifies the implicated mediator content while
-preserving task-relevant evidence and resumes execution from the sanitized
-state.
+at tool-return boundaries. It summarizes the resulting controlled contrasts as
+replay-based attribution scores. When a risky proposal is mediator-sensitive,
+AgentSentry purifies the implicated mediator content, removes
+instruction-bearing control signals while preserving task-relevant evidence,
+and resumes execution from the repaired state.
 
 We evaluate AgentSentry on AgentDojo across four task suites, three IPI attack
 families, and three black-box LLM backends. AgentSentry records zero observed
@@ -59,11 +58,11 @@ available at <https://anonymous.4open.science/r/AgentSentry>.
 ---
 
 <p align="center">
-  <img src="visualization/tradeoff_3panel_agentsentry_final.png" alt="Security-utility trade-off of indirect prompt-injection defenses" width="980"/>
+  <img src="assets/pipeline.png" alt="AgentSentry pipeline for defending against multi-turn IPI" width="980"/>
 </p>
 
 <p align="center">
-  <em><b>Security--utility trade-off of indirect prompt-injection defenses.</b></em>
+  <em><b>AgentSentry pipeline for defending against multi-turn IPI.</b></em>
 </p>
 
 ---
@@ -85,22 +84,6 @@ AgentSentry mitigates this by:
    short-window OLS temporal diagnostics;
 3. applying **attribution-gated purification**, revised continuation, and
    effect-support validation for safe task progress.
-
-<p align="center">
-  <img src="visualization/agentsentry_u20i6_ols_structural_scores.png" alt="Boundary-aligned structural replay attribution" width="980"/>
-</p>
-
-<p align="center">
-  <em><b>Boundary-aligned structural replay attribution.</b></em>
-</p>
-
-<p align="center">
-  <img src="visualization/agentsentry_u20i6_ols_structural_decision.png" alt="AgentSentry local gate and OLS temporal diagnostic" width="980"/>
-</p>
-
-<p align="center">
-  <em><b>AgentSentry local gate and OLS temporal diagnostic.</b></em>
-</p>
 
 ---
 

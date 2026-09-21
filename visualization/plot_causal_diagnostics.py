@@ -1,200 +1,383 @@
-"""Plot AgentSentry structural replay diagnostics for the Workspace u20-i6 case.
+"""Plot the rerun Workspace u20-i6 structural replay case.
 
-This script visualizes the released AgentSentry decision logic rather than the
-older ordinal-severity ACE/IE/DE view. It produces two paper-ready figures:
-
-  - agentsentry_u20i6_ols_structural_scores.{png,pdf}
-  - agentsentry_u20i6_ols_structural_decision.{png,pdf}
+The figure is generated from the extracted case summary when available;
+the released script also embeds the final u20-i6 summary used in the paper. It replaces the legacy causal-effect and ordinal
+severity plots with the scores and decision quantities used by the current
+structural replay + OLS profile.
 """
 
 from __future__ import annotations
 
-import os
+import argparse
+import json
 from pathlib import Path
+from typing import Any
 
 import matplotlib
-import numpy as np
 
-if (os.name != "nt") and os.environ.get("DISPLAY", "") == "":
-    matplotlib.use("Agg")
+matplotlib.use("Agg")
 
 import matplotlib.pyplot as plt
+import numpy as np
+from matplotlib import font_manager
 
 
-# ---------------------------------------------------------------------------
-# Released u20-i6 structural replay trace.
-#
-# Scores follow the definitions in the paper:
-#   S^U: observed-mediator user-view substitution
-#   S^M: probe-conditional mediator-purification
-#   S^R: sanitized-mediator user-view substitution
-#   S^L: user-preserving mediator-purification
-#
-# The first two boundaries show mediator support in the replay audit, but the
-# pending live proposal is not user-preserving projection-sensitive. Those
-# benign proposals remain user-view anchored after mediator projection, giving
-# S^R = 1 at the first two boundaries. The third boundary is the first
-# live-policy sensitive boundary and therefore triggers the local attribution
-# gate.
-# ---------------------------------------------------------------------------
-B = np.array([1, 2, 3], dtype=float)
-S_U = np.array([1.0, 1.0, 1.0])
-S_M = np.array([1.0, 1.0, 1.0])
-S_R = np.array([1.0, 1.0, 0.0])
-S_L = np.array([0.0, 0.0, 1.0])
-
-DELTA_L = 0.0
-DELTA_M = 0.0
-GAMMA = 0.25
-WINDOW_SIZE = 3
-
-
-def ols_slope(values: np.ndarray) -> float:
-    x = np.arange(1, len(values) + 1, dtype=float)
-    x_centered = x - x.mean()
-    denom = float(np.sum(x_centered ** 2))
-    if denom == 0.0:
-        return 0.0
-    return float(np.sum(x_centered * (values - values.mean())) / denom)
-
-
-def temporal_risk(scores_u: np.ndarray, scores_m: np.ndarray) -> tuple[float, float, float]:
-    beta_u = ols_slope(scores_u)
-    beta_m = ols_slope(scores_m)
-    risk = 0.5 * (max(-beta_u, 0.0) + max(beta_m, 0.0))
-    return beta_u, beta_m, risk
-
-
-LOCAL_GATE = ((S_L > DELTA_L) & (S_M > DELTA_M)).astype(float)
-H_M = np.array([float(np.max(S_M[: i + 1]) > DELTA_M) for i in range(len(S_M))])
-
-RISK = np.zeros_like(S_U)
-BETA_U = np.zeros_like(S_U)
-BETA_M = np.zeros_like(S_U)
-for i in range(len(S_U)):
-    if i + 1 >= WINDOW_SIZE:
-        start = i + 1 - WINDOW_SIZE
-        BETA_U[i], BETA_M[i], RISK[i] = temporal_risk(S_U[start : i + 1], S_M[start : i + 1])
-
-TEMPORAL_GATE = ((RISK >= GAMMA) & (H_M > 0)).astype(float)
-DELAYED_MATCH = np.zeros_like(S_U)
-TAKEOVER = ((LOCAL_GATE > 0) | (TEMPORAL_GATE > 0) | (DELAYED_MATCH > 0)).astype(float)
-ALARM_B = int(B[np.argmax(TAKEOVER > 0)]) if np.any(TAKEOVER > 0) else int(B[-1])
-
-
-assert np.array_equal(LOCAL_GATE, np.array([0.0, 0.0, 1.0]))
-assert np.array_equal(TEMPORAL_GATE, np.array([0.0, 0.0, 0.0]))
-assert np.array_equal(S_R, np.array([1.0, 1.0, 0.0]))
-assert ALARM_B == 3
-
-
-plt.rcParams.update(
-    {
-        "font.family": "serif",
-        "font.serif": ["Times New Roman", "Times", "DejaVu Serif"],
-        "mathtext.fontset": "stix",
-        "font.size": 11,
-        "axes.titlesize": 14,
-        "axes.labelsize": 12,
-        "legend.fontsize": 10.5,
-        "xtick.labelsize": 10.5,
-        "ytick.labelsize": 10.5,
-        "axes.spines.top": False,
-        "axes.spines.right": False,
-    }
+REPO_ROOT = Path(__file__).resolve().parents[1]
+DEFAULT_SUMMARY = REPO_ROOT / (
+    "results/rebuttal/case_studies/"
+    "workspace_u20_i6_ols_gamma025_20260823/case-summary.json"
 )
+DEFAULT_OUTPUT_DIR = Path(__file__).resolve().parent
 
-OUT_DIR = Path(__file__).resolve().parent
+COLORS = {
+    "user": "#4C78A8",
+    "mediator": "#E45756",
+    "recovery": "#59A14F",
+    "live": "#F28E2B",
+    "local": "#0072B2",
+    "risk": "#7A5195",
+    "threshold": "#CC3311",
+    "alarm": "#C7B700",
+    "grid": "#D8D8D8",
+}
 
 
-def setup_axis(ax: plt.Axes) -> None:
-    ax.set_xlim(0.55, 3.45)
-    ax.set_xticks([1, 2, 3])
-    ax.set_ylim(-0.08, 1.28)
-    ax.set_yticks([0, 0.5, 1.0])
-    ax.grid(True, alpha=0.28, linewidth=0.8)
-    ax.set_xlabel(r"Tool-return boundary index $b$")
+def _configure_style() -> None:
+    try:
+        font_manager.findfont("Times New Roman", fallback_to_default=False)
+        serif_font = "Times New Roman"
+    except ValueError:
+        serif_font = "DejaVu Serif"
 
-
-def add_alarm(ax: plt.Axes, y: float, text_xy=(-92, 42)) -> None:
-    ax.axvline(ALARM_B, color="#8c7a00", linestyle="--", linewidth=1.5, alpha=0.85, zorder=1)
-    ax.plot(
-        ALARM_B,
-        y,
-        marker="*",
-        markersize=22,
-        color="#d8c400",
-        markeredgecolor="#8c7a00",
-        markeredgewidth=1.4,
-        linestyle="None",
-        label=rf"takeover alarm $b^\star={ALARM_B}$",
-        zorder=7,
+    plt.rcParams.update(
+        {
+            "font.family": serif_font,
+            "mathtext.fontset": "stix",
+            "axes.unicode_minus": False,
+            "pdf.fonttype": 42,
+            "ps.fonttype": 42,
+            "font.size": 10.5,
+            "axes.titlesize": 12,
+            "axes.labelsize": 11,
+            "legend.fontsize": 9.2,
+            "xtick.labelsize": 9.5,
+            "ytick.labelsize": 9.5,
+            "axes.linewidth": 0.9,
+            "savefig.bbox": "tight",
+            "savefig.pad_inches": 0.04,
+        }
     )
 
 
-# ---------------------------------------------------------------------------
-# Figure 1: four structural scores.
-# ---------------------------------------------------------------------------
-fig, ax = plt.subplots(figsize=(7.8, 3.9), dpi=300)
-setup_axis(ax)
-ax.set_ylabel("Structural score")
-
-ax.step(B, S_U, where="post", linewidth=2.8, color="#4c78a8", label=r"$S_b^U$ (observed-mediator user-view)")
-ax.step(B, S_M, where="post", linewidth=2.8, color="#e45756", linestyle=":", label=r"$S_b^M$ (probe-conditional mediator-purification)")
-ax.step(B, S_R, where="post", linewidth=2.5, color="#54a24b", linestyle="-.", label=r"$S_b^R$ (sanitized-mediator user-view)")
-ax.step(B, S_L, where="post", linewidth=2.8, color="#f28e2b", linestyle="--", label=r"$S_b^L$ (user-preserving mediator-purification)")
-
-ax.plot(B, S_U, marker="s", color="#4c78a8", linestyle="None", markersize=6)
-ax.plot(B, S_M, marker="s", color="#e45756", markerfacecolor="white", linestyle="None", markersize=6)
-ax.plot(B, S_R, marker="o", color="#54a24b", markerfacecolor="white", linestyle="None", markersize=6)
-ax.plot(B, S_L, marker="D", color="#f28e2b", markerfacecolor="white", linestyle="None", markersize=6)
-
-add_alarm(ax, y=float(S_L[ALARM_B - 1]), text_xy=(-116, 40))
-ax.legend(loc="upper center", bbox_to_anchor=(0.5, 1.26), ncol=2, frameon=True, framealpha=0.95)
-fig.tight_layout(rect=(0, 0, 1, 0.94))
-fig.savefig(OUT_DIR / "agentsentry_u20i6_ols_structural_scores.png", bbox_inches="tight")
-fig.savefig(OUT_DIR / "agentsentry_u20i6_ols_structural_scores.pdf", bbox_inches="tight")
+def _default_summary() -> dict[str, Any]:
+    return {
+        "case": {"parameters": {"gamma": 0.25}},
+        "agentsentry": {
+            "first_alert_boundary": 3,
+            "first_alert_path": "user_preserving_mediator_projection",
+            "score_sequences": {
+                "S_U": [1.0, 1.0, 1.0],
+                "S_M": [1.0, 1.0, 1.0],
+                "S_R": [1.0, 1.0, 0.0],
+                "S_L": [0.0, 0.0, 1.0],
+                "sequential_risk": [0.0, 0.0, 0.0],
+            },
+            "boundaries": [
+                {"boundary": 1, "local_gate": False, "alert": False},
+                {"boundary": 2, "local_gate": False, "alert": False},
+                {"boundary": 3, "local_gate": True, "alert": True},
+            ],
+        },
+    }
 
 
-# ---------------------------------------------------------------------------
-# Figure 2: decision diagnostics.
-# ---------------------------------------------------------------------------
-fig, ax = plt.subplots(figsize=(7.8, 3.6), dpi=300)
-setup_axis(ax)
-ax.set_ylabel("Decision value")
+def _load_summary(path: Path) -> dict[str, Any]:
+    if path.exists():
+        document = json.loads(path.read_text(encoding="utf-8"))
+    else:
+        document = _default_summary()
+    agentsentry = document["agentsentry"]
+    rows = agentsentry["boundaries"]
+    if not rows:
+        raise ValueError(f"No boundary records in {path}")
 
-ax.step(B, LOCAL_GATE, where="post", linewidth=2.8, color="#4c78a8", label=r"local gate $L_b$")
-ax.step(B, TEMPORAL_GATE, where="post", linewidth=2.5, color="#7f3c8d", linestyle="-.", label=r"OLS temporal branch")
-ax.step(B, TAKEOVER, where="post", linewidth=2.8, color="#2ca02c", linestyle="--", label=r"$\mathsf{Takeover}_b$")
-ax.axhline(GAMMA, color="#d62728", linestyle=":", linewidth=1.5, label=rf"OLS threshold $\gamma={GAMMA}$")
+    boundaries = np.array([int(row["boundary"]) for row in rows], dtype=int)
+    expected = np.arange(1, len(rows) + 1)
+    if not np.array_equal(boundaries, expected):
+        raise ValueError(f"Expected contiguous boundaries, got {boundaries.tolist()}")
 
-ax.plot(B, LOCAL_GATE, marker="o", color="#4c78a8", linestyle="None", markersize=6)
-ax.plot(B, TEMPORAL_GATE, marker="s", color="#7f3c8d", markerfacecolor="white", linestyle="None", markersize=6)
-ax.plot(B, TAKEOVER, marker="D", color="#2ca02c", markerfacecolor="white", linestyle="None", markersize=6)
+    score_sequences = agentsentry["score_sequences"]
+    for score_name in ("S_U", "S_M", "S_R", "S_L", "sequential_risk"):
+        if len(score_sequences[score_name]) != len(rows):
+            raise ValueError(f"Length mismatch for {score_name}")
 
-add_alarm(ax, y=float(TAKEOVER[ALARM_B - 1]), text_xy=(-110, 38))
-ax.text(
-    1.02,
-    0.34,
-    rf"$\beta^U={BETA_U[-1]:.2f}$, $\beta^M={BETA_M[-1]:.2f}$, "
-    rf"$\mathcal{{R}}={RISK[-1]:.2f}<\gamma$",
-    fontsize=10.5,
-    color="#4b4b4b",
-    ha="left",
-    va="center",
-)
-ax.legend(loc="upper center", bbox_to_anchor=(0.5, 1.26), ncol=2, frameon=True, framealpha=0.95)
-fig.tight_layout(rect=(0, 0, 1, 0.94))
-fig.savefig(OUT_DIR / "agentsentry_u20i6_ols_structural_decision.png", bbox_inches="tight")
-fig.savefig(OUT_DIR / "agentsentry_u20i6_ols_structural_decision.pdf", bbox_inches="tight")
+    first_alert = int(agentsentry["first_alert_boundary"])
+    if not rows[first_alert - 1]["alert"]:
+        raise ValueError("First-alert boundary is not marked as an alert")
+    if agentsentry["first_alert_path"] != "user_preserving_mediator_projection":
+        raise ValueError("This case is not a boundary-local projection alert")
+
+    return document
 
 
-print("AgentSentry u20-i6 structural scores")
-print("S_U:", S_U.tolist())
-print("S_M:", S_M.tolist())
-print("S_R:", S_R.tolist())
-print("S_L:", S_L.tolist())
-print("local_gate:", LOCAL_GATE.tolist())
-print("temporal_gate:", TEMPORAL_GATE.tolist())
-print("takeover:", TAKEOVER.tolist())
-print("alarm_b:", ALARM_B)
+def _decorate_axis(axis: plt.Axes, boundaries: np.ndarray) -> None:
+    axis.set_xlim(0.55, boundaries[-1] + 0.45)
+    axis.set_xticks(boundaries)
+    axis.grid(True, color=COLORS["grid"], linewidth=0.6, alpha=0.68)
+    axis.set_axisbelow(True)
+
+
+def _extended_step_series(
+    boundaries: np.ndarray, values: np.ndarray
+) -> tuple[np.ndarray, np.ndarray]:
+    return (
+        np.append(boundaries, boundaries[-1] + 0.34),
+        np.append(values, values[-1]),
+    )
+
+
+def _plot_scores(axis: plt.Axes, document: dict[str, Any]) -> None:
+    agentsentry = document["agentsentry"]
+    sequences = agentsentry["score_sequences"]
+    boundaries = np.arange(1, len(agentsentry["boundaries"]) + 1)
+    alarm_boundary = int(agentsentry["first_alert_boundary"])
+
+    specifications = [
+        ("S_U", COLORS["user"], "o", "-", 3.2, 8.0, r"$S_b^{U}$ (observed-mediator user-view substitution)"),
+        ("S_M", COLORS["mediator"], "s", ":", 2.8, 6.5, r"$S_b^{M}$ (probe-conditional mediator purification)"),
+        ("S_R", COLORS["recovery"], "^", "-.", 2.4, 5.2, r"$S_b^{R}$ (sanitized-mediator user-view substitution)"),
+        ("S_L", COLORS["live"], "D", "--", 2.2, 4.4, r"$S_b^{L}$ (user-preserving mediator purification)"),
+    ]
+    for key, color, marker, line_style, line_width, marker_size, label in specifications:
+        values = np.asarray(sequences[key], dtype=float)
+        step_boundaries, step_values = _extended_step_series(boundaries, values)
+        axis.step(
+            step_boundaries,
+            step_values,
+            where="post",
+            color=color,
+            linestyle=line_style,
+            linewidth=line_width,
+            label=label,
+            zorder=3,
+        )
+        axis.plot(
+            boundaries,
+            values,
+            marker=marker,
+            linestyle="None",
+            markersize=marker_size,
+            markerfacecolor="white",
+            markeredgecolor=color,
+            markeredgewidth=1.25,
+            zorder=4,
+        )
+
+    axis.axvline(
+        alarm_boundary,
+        color=COLORS["alarm"],
+        linestyle=(0, (2, 2)),
+        linewidth=1.3,
+        alpha=0.9,
+        zorder=1,
+    )
+    axis.plot(
+        alarm_boundary,
+        1.0,
+        marker="*",
+        markersize=15,
+        markerfacecolor=COLORS["alarm"],
+        markeredgecolor="#776D00",
+        linestyle="None",
+        zorder=6,
+    )
+    axis.annotate(
+        rf"local alarm $b^\star={alarm_boundary}$",
+        xy=(alarm_boundary, 1.0),
+        xytext=(alarm_boundary - 0.30, 1.18),
+        textcoords="data",
+        ha="right",
+        fontsize=9.2,
+        color="#5A5100",
+        arrowprops={"arrowstyle": "->", "lw": 0.8, "color": "#776D00"},
+    )
+
+    _decorate_axis(axis, boundaries)
+    axis.set_ylim(-0.08, 1.27)
+    axis.set_yticks([0, 0.5, 1.0])
+    axis.set_xlabel(r"Tool-return boundary index $b$")
+    axis.set_ylabel("Structural replay score")
+    axis.set_title("Boundary-aligned structural replay attribution", pad=10)
+    axis.legend(
+        loc="center left",
+        bbox_to_anchor=(0.02, 0.42),
+        ncol=2,
+        frameon=True,
+        framealpha=0.96,
+        columnspacing=0.8,
+        handlelength=2.3,
+        fontsize=8.0,
+    )
+
+
+def _plot_decision(axis: plt.Axes, document: dict[str, Any]) -> None:
+    agentsentry = document["agentsentry"]
+    rows = agentsentry["boundaries"]
+    boundaries = np.arange(1, len(rows) + 1)
+    local_gate = np.array([float(bool(row["local_gate"])) for row in rows])
+    temporal_risk = np.asarray(agentsentry["score_sequences"]["sequential_risk"], dtype=float)
+    takeover = np.array([float(bool(row["alert"])) for row in rows])
+    gamma = float(document["case"]["parameters"]["gamma"])
+    alarm_boundary = int(agentsentry["first_alert_boundary"])
+
+    step_boundaries, step_local_gate = _extended_step_series(boundaries, local_gate)
+    axis.step(
+        step_boundaries,
+        step_local_gate,
+        where="post",
+        color=COLORS["local"],
+        linewidth=3.0,
+        label=r"local gate $L_b$",
+        zorder=3,
+    )
+    axis.plot(
+        boundaries,
+        local_gate,
+        color=COLORS["local"],
+        marker="o",
+        markerfacecolor=COLORS["local"],
+        linestyle="None",
+        markersize=5.4,
+        zorder=4,
+    )
+    step_boundaries, step_temporal_risk = _extended_step_series(boundaries, temporal_risk)
+    axis.step(
+        step_boundaries,
+        step_temporal_risk,
+        where="post",
+        color=COLORS["risk"],
+        linestyle="--",
+        linewidth=2.0,
+        label=r"OLS risk $\mathcal{R}_b$",
+        zorder=4,
+    )
+    axis.plot(
+        boundaries,
+        temporal_risk,
+        color=COLORS["risk"],
+        marker="s",
+        markerfacecolor=COLORS["risk"],
+        linestyle="None",
+        markersize=5.0,
+        zorder=5,
+    )
+    axis.axhline(
+        gamma,
+        color=COLORS["threshold"],
+        linestyle=":",
+        linewidth=1.7,
+        label=rf"OLS threshold $\gamma={gamma:.2f}$",
+        zorder=2,
+    )
+    alert_boundaries = boundaries[takeover > 0]
+    axis.plot(
+        alert_boundaries,
+        np.full_like(alert_boundaries, 1.06, dtype=float),
+        marker="*",
+        markersize=15,
+        markerfacecolor=COLORS["alarm"],
+        markeredgecolor="#776D00",
+        linestyle="None",
+        label=r"takeover alarm $b^\star$",
+        zorder=6,
+    )
+    axis.axvline(
+        alarm_boundary,
+        color=COLORS["alarm"],
+        linestyle=(0, (2, 2)),
+        linewidth=1.3,
+        alpha=0.9,
+        zorder=1,
+    )
+    axis.annotate(
+        r"$L_3=1$: pending email read changes under projection",
+        xy=(alarm_boundary, 1.0),
+        xytext=(2.83, 1.19),
+        ha="right",
+        fontsize=8.8,
+        arrowprops={"arrowstyle": "->", "lw": 0.8, "color": COLORS["local"]},
+    )
+    axis.annotate(
+        r"$\beta_b^U=\beta_b^M=0$; OLS does not trigger",
+        xy=(2.0, 0.0),
+        xytext=(2.86, 0.78),
+        ha="right",
+        fontsize=8.8,
+        color=COLORS["risk"],
+        arrowprops={"arrowstyle": "->", "lw": 0.8, "color": COLORS["risk"]},
+    )
+
+    _decorate_axis(axis, boundaries)
+    axis.set_ylim(-0.08, 1.32)
+    axis.set_yticks([0, gamma, 0.5, 1.0])
+    axis.set_yticklabels(["0", f"{gamma:.2f}", "0.5", "1.0"])
+    axis.set_xlabel(r"Tool-return boundary index $b$")
+    axis.set_ylabel("Decision quantity")
+    axis.set_title("Local gate and OLS temporal diagnostic", pad=10)
+    axis.legend(
+        loc="center left",
+        bbox_to_anchor=(0.035, 0.48),
+        ncol=2,
+        frameon=True,
+        framealpha=0.96,
+        columnspacing=1.1,
+        handlelength=2.8,
+    )
+
+
+def _save_figure(figure: plt.Figure, output_dir: Path, stem: str) -> list[Path]:
+    output_dir.mkdir(parents=True, exist_ok=True)
+    pdf_path = output_dir / f"{stem}.pdf"
+    png_path = output_dir / f"{stem}.png"
+    figure.savefig(pdf_path)
+    figure.savefig(png_path, dpi=300)
+    return [pdf_path, png_path]
+
+
+def _plot_combined(document: dict[str, Any], output_dir: Path, prefix: str) -> list[Path]:
+    figure, axes = plt.subplots(1, 2, figsize=(15.6, 4.15))
+    _plot_scores(axes[0], document)
+    _plot_decision(axes[1], document)
+    figure.subplots_adjust(left=0.055, right=0.995, top=0.90, bottom=0.16, wspace=0.17)
+    outputs = _save_figure(figure, output_dir, f"{prefix}_combined")
+    plt.close(figure)
+    return outputs
+
+
+def _plot_single_panels(document: dict[str, Any], output_dir: Path, prefix: str) -> list[Path]:
+    outputs: list[Path] = []
+    for suffix, plotter in (("scores", _plot_scores), ("decision", _plot_decision)):
+        figure, axis = plt.subplots(figsize=(7.6, 3.6))
+        plotter(axis, document)
+        figure.subplots_adjust(left=0.11, right=0.985, top=0.90, bottom=0.17)
+        outputs.extend(_save_figure(figure, output_dir, f"{prefix}_{suffix}"))
+        plt.close(figure)
+    return outputs
+
+
+def main() -> None:
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("--summary", type=Path, default=DEFAULT_SUMMARY)
+    parser.add_argument("--output-dir", type=Path, default=DEFAULT_OUTPUT_DIR)
+    parser.add_argument("--prefix", default="agentsentry_u20i6_ols_structural")
+    args = parser.parse_args()
+
+    _configure_style()
+    document = _load_summary(args.summary)
+    outputs = _plot_single_panels(document, args.output_dir, args.prefix)
+    for output in outputs:
+        print(output)
+
+
+if __name__ == "__main__":
+    main()
