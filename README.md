@@ -90,9 +90,15 @@ AgentSentry mitigates this by:
 ```text
 .
 ├── assets/                         # README figures
+├── configs/                        # Model and runner configuration helpers
+├── evaluation/                     # Metric aggregation utilities
 ├── results/
+│   ├── agentdojo/                  # Aggregate table-generation artifacts
 │   ├── slack_important_qwen3max/    # Packaged final AgentSentry run
 │   └── travel_tool_knowledge_qwen3max/
+├── runs/                           # Preserved AgentDojo traces for original main/baseline experiments
+├── scripts/                        # Benchmark launch helpers
+├── visualization/                  # Plotting scripts for paper figures
 ├── pi_detector.py                  # AgentSentry runtime: four scores, OLS, delayed match, repair
 ├── agentsentry_profiles.py         # Released operating profile
 ├── agentsentry_integration.py      # Minimal AgentDojo construction helper
@@ -103,10 +109,11 @@ AgentSentry mitigates this by:
 └── README.md
 ```
 
-The repository contains only the released AgentSentry runtime, README assets,
-packaged AgentSentry verification results, and the OpenClaw artifacts. It does
-not include API keys, local machine paths, unrelated defenses, notebooks, paper
-drafts, or obsolete ablation-result directories.
+The repository preserves the original benchmark utilities and non-ablation
+comparison traces, while replacing the AgentSentry runtime with the final
+released implementation and adding the two packaged final AgentSentry
+verification runs. It does not include API keys, local machine paths, notebooks,
+paper drafts, or obsolete AgentSentry ablation-result directories.
 
 ---
 
