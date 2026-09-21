@@ -85,6 +85,14 @@ AgentSentry mitigates this by:
 3. applying **attribution-gated purification**, revised continuation, and
    effect-support validation for safe task progress.
 
+<p align="center">
+  <img src="assets/threat_model_attack_path.png" alt="Multi-turn tool-mediated IPI attack path" width="980"/>
+</p>
+
+<p align="center">
+  <em><b>Multi-turn tool-mediated IPI attack path.</b></em>
+</p>
+
 ---
 
 ## 📦 Repository Layout
