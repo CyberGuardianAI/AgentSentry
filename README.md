@@ -114,7 +114,6 @@ AgentSentry mitigates this by:
 |-- agentsentry_integration.py      # Minimal AgentDojo construction helper
 |-- google_llm.py                   # Minimal AgentDojo host constant used by the runner
 |-- agentsentry_batch_results.zip   # OpenClaw batch-level artifacts
-|-- agentsentry_manual_evaluation_cases.zip
 |-- PACKAGE_MANIFEST.json
 `-- README.md
 ```
@@ -291,16 +290,11 @@ purified mediator state when takeover is attributed.
 
 ## OpenClaw Experimental Artifacts
 
-We provide two normalized artifact archives derived from the OpenClaw
+We provide a normalized artifact archive derived from the OpenClaw
 evaluation.
 
 - `agentsentry_batch_results.zip` contains the batch-level experimental outputs
   generated on OpenClaw.
-- `agentsentry_manual_evaluation_cases.zip` contains manually curated OpenClaw
-  evaluation cases for qualitative inspection.
-
-Together, these artifacts summarize the OpenClaw evaluation results and provide
-supporting materials for reproducibility and manual verification.
 
 ---
 
